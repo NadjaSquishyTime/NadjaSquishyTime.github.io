@@ -33,6 +33,32 @@
   .codein.bad { animation: shake .4s; border-color: #ff5d7a; }
   .enter { position: relative; margin-top: 14px; width: 240px; border: 0; border-radius: 16px; padding: 14px; font-weight: 800; font-size: 17px; background: linear-gradient(120deg, #7a3cff, #d44dff 60%, #ff7bb0); }
   .err { position: relative; min-height: 40px; margin: 14px 0 0; font-size: 13px; color: #ff9db0; text-align: center; max-width: 260px; }
+  .boxbtn.tr { margin-top: 10px; background: linear-gradient(120deg, #0f9d74, #2ee6a6 55%, #4da3ff); }
+  .tbody { flex: 1; min-height: 0; overflow-y: auto; width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; }
+  .seg { display: flex; gap: 6px; background: rgba(255,255,255,.07); border-radius: 14px; padding: 4px; width: 100%; margin: 14px 0 10px; }
+  .seg button { flex: 1; border: 0; background: none; padding: 10px; border-radius: 10px; font-weight: 700; color: #8f89a8; }
+  .seg button.on { background: #fff; color: #0f0d1a; }
+  .tpane { display: none; width: 100%; flex-direction: column; align-items: center; }
+  .tpane.on { display: flex; }
+  .step { align-self: flex-start; font-size: 13px; color: #a9a3c2; margin: 8px 0 6px; }
+  .pick { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 2px 0 8px; }
+  .pick button { flex: 0 0 86px; border: 2px solid transparent; border-radius: 14px; background: #181527; padding: 4px 4px 6px; position: relative; font-size: 10.5px; font-weight: 700; }
+  .pick button.sel { border-color: #2ee6a6; background: #1d2b2a; }
+  .pick img { width: 100%; display: block; pointer-events: none; }
+  .pick .cnt { position: absolute; top: 4px; right: 7px; font-size: 11px; color: #cfc9e6; }
+  .codein.wide, .enter.wide { width: 100%; }
+  .codein.wide { font-size: 17px; letter-spacing: 1.5px; }
+  .enter.wide { background: linear-gradient(120deg, #0f9d74, #2ee6a6); color: #06231a; }
+  .msg { min-height: 20px; margin: 10px 0 0; font-size: 13px; text-align: center; color: #ff9db0; }
+  .msg.ok { color: #7df0c8; }
+  .codebox { width: 100%; margin-top: 10px; background: rgba(46,230,166,.1); border: 1px dashed #2ee6a6; border-radius: 14px; padding: 12px; text-align: center; }
+  .codebox code { display: block; font-size: 15px; font-weight: 800; letter-spacing: 1px; word-break: break-all; user-select: all; -webkit-user-select: all; font-family: Consolas, monospace; }
+  .codebox button { margin-top: 10px; border: 0; border-radius: 999px; padding: 9px 18px; font-weight: 700; background: #fff; color: #0f0d1a; }
+  .codebox small { display: block; margin-top: 8px; color: #a9a3c2; font-size: 12px; }
+  .sent { width: 100%; margin-top: 14px; font-size: 12px; color: #8f89a8; }
+  .sent div { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; background: rgba(255,255,255,.05); border-radius: 10px; margin-top: 6px; }
+  .sent code { user-select: all; -webkit-user-select: all; font-family: Consolas, monospace; color: #cfc9e6; }
+  .got { width: 200px; margin-top: 6px; }
   .boxbtn.adv { margin-top: 10px; background: linear-gradient(120deg, #c81e3a, #e8324a 50%, #1f8a4c); }
   .boxbtn.adv .ico { font-size: 19px; }
   .doors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 16px; position: relative; overflow-y: auto; padding: 4px; }
@@ -90,6 +116,9 @@
   .base { bottom: 0; }
   .box.bag svg { display: none; }
   .box.bag::before { content: "?"; position: absolute; inset: -14px 8px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,.38), rgba(255,255,255,.07) 38%, rgba(255,255,255,.2) 60%, rgba(255,255,255,.34)); border: 2px solid rgba(255,255,255,.6); box-shadow: inset 0 0 0 9px rgba(255,255,255,.07), inset 0 14px 0 rgba(255,255,255,.12); display: grid; place-items: center; font-size: 76px; font-weight: 900; color: rgba(255,255,255,.75); }
+  .box.can svg { display: none; }
+  .box.can::before { content: "?"; position: absolute; left: 50%; top: -44px; width: 126px; height: 240px; margin-left: -63px; border-radius: 22px; background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,.05) 28%, rgba(255,255,255,.12) 70%, rgba(255,255,255,.4)), repeating-linear-gradient(#dcf500 0 70px, #a9c400 70px 76px); border: 2px solid rgba(255,255,255,.75); display: grid; place-items: center; font-size: 66px; font-weight: 900; color: #33420a; }
+  .box.can::after { content: ""; position: absolute; left: 50%; top: -58px; width: 140px; height: 28px; margin-left: -70px; border-radius: 10px; background: linear-gradient(#ff6b6b, #c81e3a); box-shadow: inset 0 -5px 0 rgba(0,0,0,.2); }
   .box.hallo svg { filter: brightness(.3) saturate(.4) contrast(1.25); }
   .box.xmas .lid { filter: hue-rotate(-40deg) saturate(3.2) brightness(.82); }
   .box.xmas .base { filter: hue-rotate(75deg) saturate(2.6) brightness(.72); }
@@ -134,6 +163,7 @@
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
+    <button class="boxbtn tr" id="trBtn"><div class="ico">⇄</div><div><b>Размена</b><small>Испрати или прими кнедла од пријател</small></div></button>
     <div class="prog"><span id="progT"></span><button id="oddsBtn">Шанси</button></div>
     <div class="bar"><i id="progB"></i></div>
     <div class="odds" id="odds"></div>
@@ -157,6 +187,31 @@
     <input id="code" class="codein" placeholder="XXXX-XXXX" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false">
     <button class="enter" id="enter">Влези</button>
     <p class="err" id="lockErr"></p>
+  </div>
+
+  <div class="screen" id="trade" style="--rc:#2ee6a6">
+    <div class="top"><button class="back" id="trBack">← Назад</button><span class="tag" style="--rc:#2ee6a6">Размена</span></div>
+    <h2>Размена</h2><p class="sub">Твој ID: <b id="myId" style="color:#fff;letter-spacing:2px"></b> · дај му го на пријателот</p>
+    <div class="tbody">
+      <div class="seg"><button id="segSend" class="on">Испрати</button><button id="segGet">Прими</button></div>
+      <div class="tpane on" id="paneSend">
+        <p class="step">1. Избери кнедла што ја даваш</p>
+        <div class="pick" id="pick"></div>
+        <p class="step">2. Внеси го ID-то на пријателот</p>
+        <input id="toId" class="codein wide" placeholder="ID (6 знаци)" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button class="enter wide" id="mkCode">Создај код за размена</button>
+        <p class="msg" id="sendMsg"></p>
+        <div id="codeOut"></div>
+        <div class="sent" id="sentList"></div>
+      </div>
+      <div class="tpane" id="paneGet">
+        <p class="step">Залепи го кодот што ти го пратил пријателот</p>
+        <input id="inCode" class="codein wide" placeholder="КОД-ЗА-РАЗМЕНА" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button class="enter wide" id="useCode">Прими кнедла</button>
+        <p class="msg" id="getMsg"></p>
+        <div id="gotOut"></div>
+      </div>
+    </div>
   </div>
 
   <div class="screen" id="adv" style="--rc:#e8324a">
@@ -255,6 +310,8 @@ var V = [
   { id: 'phat', name: 'Снешко со цилиндар', rar: 'special', plush: 1, mat: 'plush', pack: 'bag', hat: 'tophat', c: ['#ffffff', '#f3f5f9', '#c6cedb'] },
   { id: 'ptree', name: 'Плиш елка', rar: 'special', plush: 1, mat: 'plush', pack: 'bag', face: 'tree', orn: ['#e8324a', '#ffd83d', '#ff8a1f'], c: ['#c4dcb4', '#5f8f55', '#2c5529'] },
   { id: 'psanta', name: 'Плиш Дедо Мраз', rar: 'special', plush: 1, mat: 'plush', pack: 'bag', face: 'santa', hat: 'santa', c: ['#ff9a9a', '#d92b3a', '#86101d'] },
+  { id: 'thunder', name: 'Henry Danger', rar: 'legend', bolt: 1, sfx: 'thunder', mat: 'gel', glow: '#4da3ff', c: ['#a8d6ff', '#2b3fae', '#090d38'], a: .88, gl: ['#ffffff', '#bfe3ff'], gn: 26 },
+  { id: 'tennis', name: 'Тениски ас', rar: 'ooak', shape: 'ball', pack: 'can', fuzz: 1, seams: 1, orbit: 1, sfx: 'tennis', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'], gl: ['#ffffff', '#fffbd0'], gn: 22 },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -268,7 +325,7 @@ var V = [
 ].forEach(function (a, i) { V.push({ id: 'adv' + (i + 1), name: a[0], rar: i === 11 ? 'golden' : 'special', c: a[1], hat: a[2] || null, scarf: a[3] || null, advent: i + 1, gold: i === 11 ? 1 : 0, gl: i === 11 ? ['#ffffff', '#fff3a6'] : null, gn: i === 11 ? 30 : 0 }); });
 function uniqueVariant(u) {
   var r = rng(u.seed), h = Math.floor(r() * 360), h2 = (h + 60 + Math.floor(r() * 180)) % 360;
-  return { id: 'u' + u.seed, name: 'Уникат #' + ('000' + u.serial).slice(-4), rar: 'ooak', a: .92, holo: 1, uniq: 1,
+  return { _seed: u.seed, _serial: u.serial, id: 'u' + u.seed, name: 'Уникат #' + ('000' + u.serial).slice(-4), rar: 'ooak', a: .92, holo: 1, uniq: 1,
     c: ['hsl(' + h + ',100%,96%)', 'hsl(' + h + ',90%,68%)', 'hsl(' + h2 + ',85%,38%)'],
     neb: ['hsl(' + h2 + ',95%,65%)', 'hsl(' + (h2 + 90) % 360 + ',95%,70%)'], gl: ['#ffffff', 'hsl(' + h2 + ',100%,85%)'], gn: 60, big: 1, mat: 'gel' };
 }
@@ -308,14 +365,16 @@ function restShape() {   // купола: тркалезен врв, зарам�
   }
   return p;
 }
-var SHAPES = { dome: restShape(), bear: bearShape() }, REST = SHAPES.dome, SH = { top: RYT, bot: RYB, gap: 40 };
-function useShape(v) { var b = v.shape === 'bear'; REST = SHAPES[b ? 'bear' : 'dome']; A0 = area(REST); SH = b ? { top: 134, bot: 136, gap: 130 } : { top: RYT, bot: RYB, gap: 40 }; }
+function ballShape() { var p = []; for (var i = 0; i < N; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / N; p.push({ x: CX + 108 * Math.cos(a), y: CY + 108 * Math.sin(a) }); } return p; }
+var SHAPES = { dome: restShape(), bear: bearShape(), ball: ballShape() }, REST = SHAPES.dome, SH = { top: RYT, bot: RYB, gap: 40 };
+function useShape(v) { var s = v.shape || 'dome'; REST = SHAPES[s]; A0 = area(REST);
+  SH = s === 'bear' ? { top: 134, bot: 136, gap: 130 } : s === 'ball' ? { top: 108, bot: 108, gap: 78 } : { top: RYT, bot: RYB, gap: 40 }; }
 function decor(v) {
   if (v._d) return v._d;
   var r = rng(hash(v.id)), d = { gl: [], beads: [], bits: [], ch: [] }, i;
   if (v.chunk) for (i = 0; i < (v.foil ? 85 : 120); i++) d.ch.push({ i: r() * N, t: Math.sqrt(r()) * .93, s: v.foil ? 7 + r() * 9 : 3 + r() * 5.5, c: v.chunk[Math.floor(r() * v.chunk.length)], rot: r() * 6.28, ph: r() * 6.28 });
   if (v.melon) { d.mel = []; for (i = 0; i < 20; i++) d.mel.push({ i: r() * N, t: .12 + Math.sqrt(r()) * .76, rot: r() * 6.28, s: 11 + r() * 5 }); }
-  if (v.plush) { d.fz = []; for (i = 0; i < 240; i++) d.fz.push({ i: r() * N, t: Math.sqrt(r()) * .97, c: r() < .5 ? '#ffffff' : '#000000' }); }
+  if (v.plush || v.fuzz) { d.fz = []; for (i = 0; i < 240; i++) d.fz.push({ i: r() * N, t: Math.sqrt(r()) * .97, c: r() < .5 ? '#ffffff' : '#000000' }); }
   for (i = 0; i < (v.gn || 0); i++) d.gl.push({ i: r() * N, t: Math.sqrt(r()) * .9, s: (v.big ? 1.6 : 1) * (.8 + r() * 1.6), c: v.gl[Math.floor(r() * v.gl.length)], ph: r() * 6.28 });
   if (v.beads) for (i = 0; i < 22; i++) d.beads.push({ i: r() * N, t: .15 + Math.sqrt(r()) * .68, s: 9 + r() * 6, c: v.beads[i % v.beads.length] });
   if (v.hearts || v.spr) for (i = 0; i < 20; i++) d.bits.push({ i: r() * N, t: .2 + Math.sqrt(r()) * .65, rot: r() * 6.28, c: v.spr ? v.spr[i % v.spr.length] : '#ffffff' });
@@ -371,7 +430,7 @@ function draw(g, P, v, time) {
     g.closePath();
   }
   function soft(p, r, col, al) { var rg = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(255,255,255,0)'); g.globalAlpha = al; g.fillStyle = rg; g.beginPath(); g.arc(p.x, p.y, r, 0, 6.3); g.fill(); g.globalAlpha = 1; }
-  var d = decor(v), hl = B(N * .86, .5), bear = v.shape === 'bear';
+  var d = decor(v), hl = B(N * .86, .5), bear = v.shape === 'bear', plain = bear || v.shape === 'ball';
 
   if (v.glow) soft({ x: cx, y: cy }, 190, v.glow, .35 + .1 * Math.sin(time * 2));
   if (v.feet) [B(N * .61, 1.0), B(N * .39, 1.0)].forEach(function (f) {   // шепи што ѕиркаат оддолу
@@ -426,6 +485,11 @@ function draw(g, P, v, time) {
     g.beginPath(); g.moveTo(p.x, p.y - s.s * 2); g.lineTo(p.x + s.s * .6, p.y); g.lineTo(p.x, p.y + s.s * 2); g.lineTo(p.x - s.s * .6, p.y); g.fill();
     g.beginPath(); g.moveTo(p.x - s.s * 2, p.y); g.lineTo(p.x, p.y + s.s * .6); g.lineTo(p.x + s.s * 2, p.y); g.lineTo(p.x, p.y - s.s * .6); g.fill(); });
   g.globalAlpha = 1;
+  if (v.seams) [[.9, .75, .6], [.1, .25, .4]].forEach(function (s) { var sa2 = B(N * s[0], 1.03), sc = B(N * s[1], .28), se = B(N * s[2], 1.03);   // шевови на тениско топче
+    g.beginPath(); g.moveTo(sa2.x, sa2.y); g.quadraticCurveTo(sc.x, sc.y, se.x, se.y); g.lineCap = 'round'; g.strokeStyle = 'rgba(60,80,0,.28)'; g.lineWidth = 13; g.stroke(); g.strokeStyle = '#ffffff'; g.lineWidth = 8; g.stroke(); });
+  if (v.bolt) for (var ba = 0; ba < 3; ba++) { var br = rng(Math.floor(time * 9) * 7 + ba), bs = B(br() * N, .98), bx = bs.x, by = bs.y;   // молњи што трепкаат внатре
+    g.beginPath(); g.moveTo(bx, by); for (var bk = 1; bk <= 5; bk++) { bx += (cx - bs.x) / 5 + (br() - .5) * 36; by += (cy - bs.y) / 5 + (br() - .5) * 36; g.lineTo(bx, by); }
+    g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = 'rgba(150,210,255,.32)'; g.lineWidth = 8; g.stroke(); g.strokeStyle = '#eef8ff'; g.lineWidth = 2.2; g.stroke(); }
   if (v.stripes) { var Kc = B(0, .48); g.fillStyle = v.stripes; for (var sk = 0; sk < 14; sk += 2) { var s1 = B(sk * N / 14 + N / 28, 1.08), s2b = B((sk + 1) * N / 14 + N / 28, 1.08); g.beginPath(); g.moveTo(Kc.x, Kc.y); g.lineTo(s1.x, s1.y); g.lineTo(s2b.x, s2b.y); g.fill(); } }
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   // сенка по рабовите за волумен
@@ -438,7 +502,7 @@ function draw(g, P, v, time) {
 
   // набори на врвот
   var K = B(0, .48);
-  if (!bear) for (var jx = 0; jx < 14; jx++) {   // набори што се шират од јазолот преку целата купола
+  if (!plain) for (var jx = 0; jx < 14; jx++) {   // набори што се шират од јазолот преку целата купола
     var fi = jx * N / 14 + N / 28, e2 = B(fi, .92), m2 = B(fi + N * .045, .58);
     g.beginPath(); g.moveTo(K.x, K.y); g.quadraticCurveTo(m2.x, m2.y, e2.x, e2.y);
     g.strokeStyle = 'rgba(20,0,50,.16)'; g.lineWidth = 5; g.lineCap = 'round'; g.stroke();
@@ -446,7 +510,7 @@ function draw(g, P, v, time) {
     g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 2.2; g.stroke();
   }
   var kg = g.createRadialGradient(K.x - 3, K.y - 4, 1, K.x, K.y, 13); kg.addColorStop(0, v.c[0]); kg.addColorStop(1, v.c[2]);
-  if (!bear) { g.fillStyle = kg; g.beginPath(); g.ellipse(K.x, K.y, 13, 9, 0, 0, 6.3); g.fill(); }
+  if (!plain) { g.fillStyle = kg; g.beginPath(); g.ellipse(K.x, K.y, 13, 9, 0, 0, 6.3); g.fill(); }
 
   // лице (се деформира заедно со телото)
   var eL = B(N * .635, .46), eR = B(N * .365, .46), mo = B(N * .5, .44), er = 13;
@@ -464,7 +528,7 @@ function draw(g, P, v, time) {
   } }
 
   // сјај
-  if (v.plush) soft(hl, 90, '#ffffff', .25); else {
+  if (v.plush || v.fuzz) soft(hl, 90, '#ffffff', v.fuzz ? .4 : .25); else {
   soft(hl, 62, '#ffffff', .8);
   g.beginPath(); for (i = 0; i <= 8; i++) { var s2 = B(N * (.79 + i * .016), .8); i ? g.lineTo(s2.x, s2.y) : g.moveTo(s2.x, s2.y); }
   g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 10; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke();
@@ -484,6 +548,9 @@ function draw(g, P, v, time) {
   if (v.plush && !v.hat && !v.bow) { var kb = B(0, 1), kg2 = g.createRadialGradient(kb.x - 5, kb.y - 10, 2, kb.x, kb.y - 4, 24); kg2.addColorStop(0, v.c[0]); kg2.addColorStop(1, v.c[2]);   // собран врв
     g.fillStyle = kg2; g.beginPath(); g.ellipse(kb.x, kb.y - 4, 23, 15, 0, 0, 6.3); g.fill();
     g.strokeStyle = 'rgba(0,0,0,.14)'; g.lineWidth = 2; for (i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(kb.x + i * 7, kb.y - 14); g.lineTo(kb.x + i * 9, kb.y + 6); g.stroke(); } }
+  if (v.bolt) { var bp = B(0, .2); g.beginPath(); [[9, -36], [-19, 4], [-3, 4], [-11, 36], [19, -9], [3, -9]].forEach(function (q, k) { k ? g.lineTo(bp.x + q[0], bp.y + q[1]) : g.moveTo(bp.x + q[0], bp.y + q[1]); });
+    g.closePath(); g.fillStyle = '#ffe23d'; g.fill(); g.strokeStyle = '#fffad6'; g.lineWidth = 2.5; g.lineJoin = 'round'; g.stroke(); }
+  if (v.orbit) for (i = 0; i < 10; i++) { var oa = time * .9 + i * .6283; star(g, { x: cx + Math.cos(oa) * 152, y: cy + Math.sin(oa) * 138 }, 5.5 + 2.5 * Math.sin(time * 3 + i), i % 2 ? '#fffbd0' : '#ffffff'); }
   // празнични додатоци
   if (v.scarf) { band(g, B, .33, .67, .86, v.scarf, 16); band(g, B, .33, .67, .86, v.scarf === '#ffffff' ? '#e8324a' : '#ffffff', 3, .035); }
   if (v.hat === 'santa' || v.hat === 'beanie') {
@@ -530,11 +597,9 @@ function click(freq, vol, delay) {
   s.connect(f); f.connect(g); g.connect(c.destination); s.start(c.currentTime + (delay || 0));
 }
 // ---------- Глас: кратки реплики ----------
-var NAMES = ['Nadya', 'Dea', 'Vicky'], CHEERS = ['Cute!', 'Sweet!', 'Squish squish!', 'Wow!'], voice = null;
+var NAMES = ['Nadya', 'Dea', 'Vicky'], CHEERS = ['Cute!', 'Sweet!', 'Squish squish!', 'Wow!', 'A S M R!', 'Slaay!', 'Amazing!', 'Squish!', 'So amazing!'], voice = null;
 function pickVoice() {
   if (!window.speechSynthesis) return; var vs = speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
-  var all = speechSynthesis.getVoices(); slav = null;
-  ['mk', 'sr', 'bg', 'hr', 'bs', 'sl'].some(function (l) { slav = all.filter(function (v) { return v.lang.toLowerCase().indexOf(l) === 0; })[0] || null; return !!slav; });
   voice = vs.filter(function (v) { return /female|zira|samantha|aria|jenny|google us|karen|moira|tessa/i.test(v.name); })[0] || vs[0] || null;
 }
 if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
@@ -543,26 +608,14 @@ function say(text) {
   try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; if (voice) u.voice = voice; u.pitch = 1.8; u.rate = 1.05; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-// Македонски реплики: прво бара снимка sounds/<k>.mp3, инаку ја чита гласот на уредот
-var MK = [
-  { k: 'lele-brat', mk: 'Леле браат!', lat: 'Lele braat!', en: 'Leh leh, braaht!' },
-  { k: 'sto-e-ova', mk: 'Што е ова!?', lat: 'Što e ova!?', en: 'Shtoh eh ohvah!?' },
-  { k: 'prejako', mk: 'Прејако!', lat: 'Prejako!', en: 'Preh yah koh!' },
-  { k: 'ne-mi-se-veruva', mk: 'Не ми се верува!', lat: 'Ne mi se veruva!', en: 'Neh mee seh vehroovah!' }
-], clips = {}, slav = null;
-function ttsMk(p) {
-  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(slav ? (/^(mk|sr|bg)/i.test(slav.lang) ? p.mk : p.lat) : p.en);
-    if (slav) { u.voice = slav; u.lang = slav.lang; } else { u.lang = 'en-US'; if (voice) u.voice = voice; }
-    u.pitch = 1.6; u.rate = 1; speechSynthesis.speak(u); } catch (e) {}
-}
-function sayMk(p) {
-  var c = clips[p.k]; if (c === false) return ttsMk(p);
-  if (!c) { c = clips[p.k] = new Audio('sounds/' + p.k + '.mp3'); c.addEventListener('error', function () { clips[p.k] = false; ttsMk(p); }); }
-  try { c.currentTime = 0; var pr = c.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) { ttsMk(p); }
-}
-function cheer() { if (Math.random() < .5) sayMk(any(MK)); else say(any(CHEERS)); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else say(any(CHEERS)); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
+function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
+  var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+  for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.6);
+  var s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = buf; f.type = type; f.frequency.value = freq; g.gain.value = vol;
+  s.connect(f); f.connect(g); g.connect(c.destination); s.start(c.currentTime + (delay || 0));
+}
 // звукот го следи движењето: колку побрзо стискаш, толку е погласен; висината зависи од притисокот
 function liveSound(speed, squeeze, deform, mat) {
   if (!ac) return; var t = ac.currentTime;
@@ -654,6 +707,8 @@ cv.addEventListener('pointermove', function (e) { if (hand.down) { var p = cvPos
 function up() {
   if (!hand.down) return; hand.down = false;
   tone(170, 560, .08, 'sine', .22); click(900, .25, .04); if (navigator.vibrate) navigator.vibrate(20);
+  if (hand.peak > .45 && cur.sfx === 'thunder') { click(3200, .5); burst(1.3, 'lowpass', 170, 1); tone(85, 30, 1.1, 'sawtooth', .16, .05); if (navigator.vibrate) navigator.vibrate([30, 40, 120]); }
+  if (hand.peak > .45 && cur.sfx === 'tennis') { tone(540, 180, .07, 'triangle', .45); click(2300, .4); }
   if (hand.peak > .45) { SV.sq++; cur._n = (cur._n || 0) + 1; $('pCnt').textContent = cur._n;
     if (cur._n === 1 || Math.random() < .4) { if (cur.gold && Math.random() < .5) say('Golden!'); else if (hand.peak > .9 && Math.random() < .25) say(omg()); else cheer(); } if (SV.sq % PER_BOX === 0) { SV.boxes++; tone(660, 1320, .25, 'triangle', .2); } save(); }
 }
@@ -715,18 +770,84 @@ function advent() {
 $('advBtn').addEventListener('click', function () { $('adv').classList.add('open'); advent(); });
 $('advBack').addEventListener('click', function () { $('adv').classList.remove('open'); home(); });
 
+// ---------- Размена со кодови ----------
+// Испраќачот избира кнедла и ID на пријателот. Кнедлата веднаш излегува од неговата колекција и се претвора во код.
+// Кодот важи само за тој ID и може да се искористи еднаш на уред. Нема разговор и нема лични податоци.
+var SALT = 'dv-trade-1', sessHash = null, pickId = null;
+function myID() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} h = h || sessHash; return h ? h.slice(0, 6).toUpperCase() : 'GUEST1'; }
+function tradeSig(vc, to, n) { return h53(vc + '|' + to + '|' + n + '|' + SALT).slice(0, 6).toUpperCase(); }
+function pad36(n, w) { return ('000000' + n.toString(36)).slice(-w).toUpperCase(); }
+function makeTrade(v, to) {
+  var n = pad36(Math.floor(Math.random() * 1679616), 4), vc = v.uniq ? 'U' + pad36(v._seed, 6) + pad36(v._serial, 3) : v.id.toUpperCase();
+  return vc + '-' + to + '-' + n + '-' + tradeSig(vc, to, n);
+}
+function takeItem(v) {
+  SV.owned[v.id] = (SV.owned[v.id] || 0) - 1; if (SV.owned[v.id] <= 0) delete SV.owned[v.id];
+  if (v.uniq && !SV.owned[v.id]) SV.uniq = SV.uniq.filter(function (u) { return u.seed !== v._seed; });
+}
+function redeem(raw) {
+  var p = String(raw).toUpperCase().replace(/[^A-Z0-9-]/g, '').split('-'); if (p.length !== 4) return { err: 'Кодот не е целосен.' };
+  var vc = p[0], to = p[1], n = p[2], sig = p[3], key = n + sig;
+  if (tradeSig(vc, to, n) !== sig) return { err: 'Кодот не е валиден. Провери дали е цел.' };
+  if (to !== myID()) return { err: 'Овој код е за друг корисник (ID ' + to + ').' };
+  SV.redeemed = SV.redeemed || []; if (SV.redeemed.indexOf(key) >= 0) return { err: 'Овој код е веќе искористен.' };
+  var v = null;
+  for (var i = 0; i < V.length; i++) if (V[i].id.toUpperCase() === vc) v = V[i];
+  if (!v && vc.length === 10 && vc.charAt(0) === 'U') { var u = { seed: parseInt(vc.slice(1, 7), 36), serial: parseInt(vc.slice(7), 36) };
+    if (!SV.uniq.some(function (x) { return x.seed === u.seed; })) SV.uniq.push(u); v = uniqueVariant(u); }
+  if (!v) return { err: 'Оваа кнедла не постои во твојата верзија. Освежи ја апликацијата.' };
+  SV.owned[v.id] = (SV.owned[v.id] || 0) + 1; SV.redeemed.push(key); save(); return { v: v };
+}
+function copyText(t, btn) { var done = function () { btn.textContent = 'Копирано ✓'; };
+  if (navigator.share) { navigator.share({ text: t }).catch(function () {}); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {}); }
+function tradeScreen() {
+  $('myId').textContent = myID(); var pk = $('pick'); pk.innerHTML = '';
+  var own = allVariants().filter(function (v) { return SV.owned[v.id]; });
+  if (!own.length) pk.innerHTML = '<p class="step">Немаш кнедли за давање. Отвори кошничка прво.</p>';
+  own.forEach(function (v) { var b = document.createElement('button'); b.className = v.id === pickId ? 'sel' : '';
+    b.innerHTML = '<img src="' + thumb(v) + '" alt="">' + (SV.owned[v.id] > 1 ? '<span class="cnt">×' + SV.owned[v.id] + '</span>' : '') + v.name;
+    b.addEventListener('click', function () { pickId = v.id; tradeScreen(); }); pk.appendChild(b); });
+  var sl = $('sentList'), s = SV.sent || []; sl.innerHTML = s.length ? 'Испратени кодови (ако пријателот го изгуби):' : '';
+  s.forEach(function (x) { var d = document.createElement('div'); d.innerHTML = '<span>' + x.n + '</span><code>' + x.c + '</code>'; sl.appendChild(d); });
+}
+$('trBtn').addEventListener('click', function () { pickId = null; $('codeOut').innerHTML = ''; $('gotOut').innerHTML = ''; $('sendMsg').textContent = ''; $('getMsg').textContent = ''; $('trade').classList.add('open'); tradeScreen(); });
+$('trBack').addEventListener('click', function () { $('trade').classList.remove('open'); home(); });
+$('segSend').addEventListener('click', function () { $('segSend').className = 'on'; $('segGet').className = ''; $('paneSend').className = 'tpane on'; $('paneGet').className = 'tpane'; });
+$('segGet').addEventListener('click', function () { $('segGet').className = 'on'; $('segSend').className = ''; $('paneGet').className = 'tpane on'; $('paneSend').className = 'tpane'; });
+$('mkCode').addEventListener('click', function () {
+  var m = $('sendMsg'), to = $('toId').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), v = pickId && byId(pickId); m.className = 'msg';
+  if (!v || !SV.owned[v.id]) { m.textContent = 'Прво избери кнедла.'; return; }
+  if (!/^[0-9A-F]{6}$/.test(to)) { m.textContent = 'ID-то има 6 знаци (бројки и букви A до F).'; return; }
+  if (to === myID()) { m.textContent = 'Ова е твоето ID. Внеси го ID-то на пријателот.'; return; }
+  var code = makeTrade(v, to); takeItem(v); SV.sent = SV.sent || []; SV.sent.unshift({ c: code, n: v.name }); SV.sent = SV.sent.slice(0, 20); save();
+  audio(); [659, 880].forEach(function (f, k) { tone(f, f, .18, 'triangle', .15, k * .09); });
+  m.className = 'msg ok'; m.textContent = v.name + ' е извадена од твојата колекција.';
+  $('codeOut').innerHTML = '<div class="codebox"><code>' + code + '</code><button id="cpy">Копирај / сподели</button><small>Прати му го кодот на пријателот со ID ' + to + '. Важи само за него.</small></div>';
+  $('cpy').addEventListener('click', function () { copyText(code, $('cpy')); });
+  pickId = null; $('toId').value = ''; tradeScreen();
+});
+$('useCode').addEventListener('click', function () {
+  var m = $('getMsg'), r = redeem($('inCode').value); m.className = 'msg'; $('gotOut').innerHTML = '';
+  if (r.err) { m.textContent = r.err; return; }
+  audio(); [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .25, 'triangle', .16, k * .09); }); say(any(['Wow!', 'So amazing!', 'Slaay!']));
+  m.className = 'msg ok'; m.textContent = 'Доби: ' + r.v.name + ' (' + RAR[r.v.rar].n + ')';
+  $('gotOut').innerHTML = '<img class="got" src="' + thumb(r.v) + '" alt="">'; $('inCode').value = '';
+});
+
 // ---------- Mystery box ----------
 var prizeV = null, taps = 0;
 function roll() {
   var x = Math.random() * 100, acc = 0, rar = 'common';
   for (var i = 0; i < ORDER.length; i++) { acc += RAR[ORDER[i]].w; if (x < acc) { rar = ORDER[i]; break; } }
+  if (rar === 'ooak' && !SV.owned.tennis) return byId('tennis');   // првиот One of a Kind секогаш е тенискиот
   if (rar === 'ooak') { var u = { seed: Math.floor(Math.random() * 1e9), serial: Math.floor(Math.random() * 9999) + 1 }; SV.uniq.push(u); return uniqueVariant(u); }
   var pool = V.filter(function (v) { return v.rar === rar && !v.advent; }); return pool[Math.floor(Math.random() * pool.length)];
 }
 $('boxBtn').addEventListener('click', function () {
   if (!SV.boxes) return; audio(); SV.boxes--; prizeV = roll(); taps = 0;
   var o = $('open'), r = RAR[prizeV.rar]; o.className = 'screen open'; o.style.setProperty('--rc', '#7a3cff');
-  $('box').className = 'box' + (prizeV.pack ? ' ' + prizeV.pack : prizeV.season ? ' ' + prizeV.season : ''); $('prize').src = thumb(prizeV); $('tapHint').textContent = prizeV.pack ? 'Допри ја вреќичката 3 пати' : 'Допри ја кошничката 3 пати';
+  $('box').className = 'box' + (prizeV.pack ? ' ' + prizeV.pack : prizeV.season ? ' ' + prizeV.season : ''); $('prize').src = thumb(prizeV); $('tapHint').textContent = prizeV.pack === 'can' ? 'Допри ја тубата 3 пати' : prizeV.pack ? 'Допри ја вреќичката 3 пати' : 'Допри ја кошничката 3 пати';
   var isNew = !SV.owned[prizeV.id]; SV.owned[prizeV.id] = (SV.owned[prizeV.id] || 0) + 1; save();
   $('rRar').textContent = r.n; $('rRar').className = 'rl' + (prizeV.rar === 'ooak' ? ' ooak' : ''); $('rName').textContent = prizeV.name;
   $('rNew').textContent = isNew ? 'Нова во колекцијата!' : 'Дупликат · имаш ×' + SV.owned[prizeV.id];
@@ -740,10 +861,12 @@ $('box').addEventListener('click', function () {
     if (taps === 2) { o.style.setProperty('--rc', r.c); bx.classList.add('hintglow'); tone(220, 440, .3, 'sine', .15); } return; }
   o.style.setProperty('--rc', r.c); o.classList.add('reveal');
   var gold = prizeV.rar === 'golden';
+  if (prizeV.pack === 'can') burst(.55, 'highpass', 3600, .35);   // „пссст“ на вакуумска туба
   setTimeout(function () {
     if (gold) say('Golden! ' + omg());
-    else if (tier >= 3) { if (Math.random() < .5) say(omg()); else sayMk(any([MK[0], MK[1], MK[3]])); }
-    else if (tier >= 1) { if (Math.random() < .5) sayMk(MK[2]); else say(any(['Wow!', 'Sweet!'])); }
+    else if (prizeV.id === 'tennis') say('Ace! ' + omg());
+    else if (tier >= 3) say(Math.random() < .5 ? omg() : any(['So amazing!', 'Slaay!']));
+    else if (tier >= 1) say(any(['Wow!', 'Sweet!', 'Amazing!']));
     else say('Cute!');
   }, 900);
   tone(200, 900, .35, 'sawtooth', .08); [523, 659, 784, 1047, 1319, 1568, 2093, 2637].slice(0, 3 + tier).forEach(function (f, k) { tone(f, f, .3, 'triangle', .16, .3 + k * .09); });
@@ -773,7 +896,7 @@ function normCode(s) { return String(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
 function unlocked() { try { return CODES.indexOf(localStorage.getItem('dvAccess')) >= 0; } catch (e) { return false; } }
 function tryCode() {
   var inp = $('code'), h = h53(normCode(inp.value));
-  if (CODES.indexOf(h) >= 0) { try { localStorage.setItem('dvAccess', h); } catch (e) {} audio(); $('lock').classList.remove('open'); [523, 784, 1047].forEach(function (f, k) { tone(f, f, .2, 'triangle', .15, k * .09); }); }
+  if (CODES.indexOf(h) >= 0) { sessHash = h; try { localStorage.setItem('dvAccess', h); } catch (e) {} audio(); $('lock').classList.remove('open'); [523, 784, 1047].forEach(function (f, k) { tone(f, f, .2, 'triangle', .15, k * .09); }); }
   else { inp.classList.remove('bad'); void inp.offsetWidth; inp.classList.add('bad'); $('lockErr').textContent = 'Погрешен код. Побарај го твојот код од сопственикот на апликацијата.'; }
 }
 $('enter').addEventListener('click', tryCode);
