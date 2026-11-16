@@ -2,7 +2,7 @@
 <html lang="mk">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Dumpling Vault</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -13,8 +13,11 @@
 <meta name="robots" content="noindex">
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: #07060d; color: #f2effa; display: flex; justify-content: center; user-select: none; -webkit-user-select: none; }
+  /* Заклучен приказ на телефон: без зумирање со двоен допир или со два прста, без поместување на страницата */
+  * { touch-action: pan-x pan-y; -webkit-touch-callout: none; }
+  html, body { margin: 0; height: 100%; width: 100%; overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: #07060d; color: #f2effa; display: flex; justify-content: center; user-select: none; -webkit-user-select: none; }
+  input { touch-action: manipulation; }
   button { font: inherit; color: inherit; cursor: pointer; }
   .app { width: 100%; max-width: 430px; height: 100%; background: #0f0d1a; display: flex; flex-direction: column; position: relative; overflow: hidden; }
   header { padding: 20px 18px 4px; display: flex; align-items: center; justify-content: space-between; }
@@ -90,14 +93,14 @@
   .tag { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; color: #0f0d1a; background: var(--rc); position: relative; margin-top: 3px; }
   .tag.ooak, .rl.ooak { background: linear-gradient(90deg, #ff5d9e, #ffd166, #6ef08a, #4da3ff, #b56bff); }
 
-  .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; background: #0f0d1a; z-index: 5; padding: 16px 18px 22px; }
+  .screen { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: none; flex-direction: column; align-items: center; background: #0f0d1a; z-index: 5; padding: 16px 18px 22px; }
   .screen.open { display: flex; }
-  .screen::before { content: ""; position: absolute; inset: 0; background: radial-gradient(65% 45% at 50% 50%, var(--rc), transparent); opacity: .28; pointer-events: none; }
+  .screen::before { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: radial-gradient(65% 45% at 50% 50%, var(--rc), transparent); opacity: .28; pointer-events: none; }
   .top { width: 100%; display: flex; justify-content: space-between; align-items: center; position: relative; }
   .back { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); border-radius: 999px; font-weight: 600; font-size: 14px; padding: 9px 16px; }
   .screen h2 { margin: 14px 0 0; font-size: 26px; font-weight: 800; position: relative; text-align: center; }
   .sub { margin: 3px 0 0; font-size: 13px; color: #a9a3c2; position: relative; }
-  #cv { width: 100%; flex: 1; min-height: 0; touch-action: none; position: relative; cursor: grab; object-fit: contain; }
+  #cv { width: 100%; max-width: 100%; flex: 1 1 0; min-height: 0; min-width: 0; touch-action: none; position: relative; cursor: grab; object-fit: contain; }
   .hint { font-size: 12.5px; color: #8f89a8; margin: 0 0 10px; position: relative; }
   .stats { display: flex; gap: 10px; width: 100%; position: relative; }
   .stat { flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 9px 13px; }
@@ -138,7 +141,7 @@
   #open.reveal .prize { animation: rise .9s .25s cubic-bezier(.2,1.5,.4,1) forwards, float 3s 1.2s ease-in-out infinite; }
   @keyframes rise { to { transform: none; opacity: 1; } }
   @keyframes float { 50% { margin-top: -162px; } }
-  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 4; }
+  .flash { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 4; }
   #open.reveal .flash { animation: flash .7s; }
   @keyframes flash { 12% { opacity: .9; } 100% { opacity: 0; } }
   .result { position: relative; text-align: center; min-height: 150px; opacity: 0; }
@@ -902,6 +905,11 @@ function tryCode() {
 }
 $('enter').addEventListener('click', tryCode);
 $('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryCode(); });
+// Спречи зумирање на телефон: двоен допир, штипкање со два прста и iOS гестови
+['gesturestart', 'gesturechange', 'gestureend', 'dblclick'].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false }); });
+document.addEventListener('touchmove', function (e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+var lastTouch = 0;
+document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () {});
 
