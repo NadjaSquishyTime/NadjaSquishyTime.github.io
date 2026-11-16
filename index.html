@@ -597,7 +597,8 @@ function click(freq, vol, delay) {
   s.connect(f); f.connect(g); g.connect(c.destination); s.start(c.currentTime + (delay || 0));
 }
 // ---------- Глас: кратки реплики ----------
-var NAMES = ['Nadya', 'Dea', 'Vicky'], CHEERS = ['Cute!', 'Sweet!', 'Squish squish!', 'Wow!', 'A S M R!', 'Slaay!', 'Amazing!', 'Squish!', 'So amazing!'], voice = null;
+// Имиња: Надја, Деа, Вики, Ева. Напишани се по изговор, за англискиот глас на уредот да ги каже како на македонски.
+var NAMES = ['Nahdya', 'Deh-ah', 'Veekee', 'Eh-vah'],CHEERS = ['Cute!', 'Sweet!', 'Squish squish!', 'Wow!', 'A S M R!', 'Slaay!', 'Amazing!', 'Squish!', 'So amazing!'], voice = null;
 function pickVoice() {
   if (!window.speechSynthesis) return; var vs = speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
   voice = vs.filter(function (v) { return /female|zira|samantha|aria|jenny|google us|karen|moira|tessa/i.test(v.name); })[0] || vs[0] || null;
