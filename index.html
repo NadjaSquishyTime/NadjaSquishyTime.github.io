@@ -1305,7 +1305,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-12';
+var APP_VER = '2026-11-17-13';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1358,8 +1358,11 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
 function sendStats() {
-  if (!STATS_URL || !navigator.sendBeacon) return; var me = myHash(); if (!me) return; var a = SV.act || { total: 0, days: {} }, n = 0; for (var k in SV.owned) n += SV.owned[k];
-  try { navigator.sendBeacon(STATS_URL, JSON.stringify({ id: me.slice(0, 6).toUpperCase(), day: today(), today: a.days[today()] || 0, total: a.total, squeezes: SV.sq || 0, owned: n, opens: SV.opens || 0 })); } catch (e) {}
+  if (!STATS_URL) return; var me = myHash(); if (!me) return; var a = SV.act || { total: 0, days: {} }, n = 0; for (var k in SV.owned) n += SV.owned[k];
+  var data = JSON.stringify({ id: me.slice(0, 6).toUpperCase(), day: today(), today: a.days[today()] || 0, total: a.total, squeezes: SV.sq || 0, owned: n, opens: SV.opens || 0 });
+  // fetch (no-cors, keepalive) е посигурно за Google Apps Script од sendBeacon; sendBeacon е резерва
+  var beacon = function () { try { if (navigator.sendBeacon) navigator.sendBeacon(STATS_URL, data); } catch (e) {} };
+  try { fetch(STATS_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: data }).catch(beacon); } catch (e) { beacon(); }
 }
 setInterval(checkVersion, 60000);   // и отворените апликации на секоја минута проверуваат за нова верзија
 
