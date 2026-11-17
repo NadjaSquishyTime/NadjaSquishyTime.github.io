@@ -163,6 +163,7 @@
   @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
   .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 62%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
   .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
+  .musbtn { background: none; border: 0; font-size: 18px; padding: 0 8px 0 0; cursor: pointer; vertical-align: middle; }
   .usage { margin: 0 0 10px; padding: 0 18px; font-size: 12.5px; line-height: 1.5; color: #a9a3c2; } .usage b { color: #fff; }
   .umsg { position: fixed; left: 16px; right: 16px; top: 40%; z-index: 80; padding: 22px 18px; border-radius: 18px; background: linear-gradient(135deg, #ff5d7a, #7a3cff); color: #fff;
     font-size: 19px; font-weight: 800; text-align: center; line-height: 1.35; box-shadow: 0 12px 40px rgba(0,0,0,.5); opacity: 0; transform: scale(.85); pointer-events: none; transition: .3s; }
@@ -173,7 +174,7 @@
 </head>
 <body>
 <div class="app">
-  <header><h1>Dumpling <span>Vault</span></h1><div class="own">Собрани <b id="ownN">0</b></div></header>
+  <header><h1>Dumpling <span>Vault</span></h1><div class="own"><button id="musBtn" class="musbtn" aria-label="Музика">🔊</button>Собрани <b id="ownN">0</b></div></header>
     <div class="usage" id="usage"></div>
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
@@ -913,6 +914,43 @@ function audio() {
 try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
 document.addEventListener('pointerdown', function () { if (ac) audio(); }, true);   // секој допир го „буди“ звукот ако заспал
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ac) audio(); });
+// ---------- Позадинска музика (оригинална, во K-pop / „soda pop“ стил) ----------
+// Свири само на почетниот екран; копчето 🔊/🔇 ја пали и гаси (се памети).
+var music = (function () {
+  var BPM = 124, S = 60 / BPM / 4, on = false, next = 0, step = 0, timer = null, out = null;
+  var CH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];   // Am – F – C – G
+  var BASS = [45, 41, 36, 43];
+  var LEAD = [76, 0, 79, 76, 74, 0, 72, 74, 76, 0, 0, 72, 69, 0, 72, 0,   72, 0, 74, 72, 69, 0, 65, 69, 72, 0, 74, 0, 72, 0, 0, 0,
+              67, 0, 72, 76, 79, 0, 76, 0, 77, 76, 74, 0, 72, 0, 74, 0,   74, 0, 79, 0, 77, 76, 74, 72, 74, 0, 0, 0, 79, 81, 83, 0];
+  var hz = function (m) { return 440 * Math.pow(2, (m - 69) / 12); };
+  function note(f, t, d, type, v) { var o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(out); o.start(t); o.stop(t + d + .02); }
+  function noise(t, d, type, f, v) { var n = Math.floor(ac.sampleRate * d), b = ac.createBuffer(1, n, ac.sampleRate), x = b.getChannelData(0);
+    for (var i = 0; i < n; i++) x[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+    var s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = b; fl.type = type; fl.frequency.value = f; g.gain.value = v; s.connect(fl); fl.connect(g); g.connect(out); s.start(t); }
+  function kick(t) { var o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + .12);
+    g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.0001, t + .22); o.connect(g); g.connect(out); o.start(t); o.stop(t + .25); }
+  function play(i, t) {
+    var bar = Math.floor(i / 16) % 4, s16 = i % 16, li = i % 64;
+    if (s16 % 4 === 0) kick(t);
+    if (s16 === 4 || s16 === 12) { noise(t, .16, 'bandpass', 1800, .5); noise(t + .012, .12, 'highpass', 3000, .25); }   // клап
+    if (s16 % 2 === 1) noise(t, .04, 'highpass', 7500, .16);   // хај-хет
+    if (s16 % 2 === 0) note(hz(BASS[bar] + (s16 % 8 === 6 ? 12 : 0)), t, S * 1.8, 'triangle', .3);
+    if (s16 === 2 || s16 === 6 || s16 === 10 || s16 === 14) CH[bar].forEach(function (m) { note(hz(m + 12), t, S * 1.2, 'square', .025); });
+    if (LEAD[li]) { note(hz(LEAD[li]), t, S * 1.7, 'square', .045); note(hz(LEAD[li] + 12), t, S * 1.2, 'sine', .04); }
+    if (s16 === 15 && Math.random() < .5) fizz(t - ac.currentTime, .03);
+  }
+  function tick() { if (!ac) return; while (next < ac.currentTime + .12) { play(step, next); next += S; step++; } }
+  function canPlay() { return document.visibilityState === 'visible' && !document.querySelector('.screen.open') && ac && ac.state === 'running'; }
+  function start() { if (on || !audio()) return; on = true; out = ac.createGain(); out.gain.value = 0; out.connect(ac.destination);
+    out.gain.linearRampToValueAtTime(.16, ac.currentTime + .8); next = ac.currentTime + .05; step = 0; timer = setInterval(tick, 25); }
+  function stop() { if (!on) return; on = false; clearInterval(timer); var o = out; o.gain.setTargetAtTime(0, ac.currentTime, .15); setTimeout(function () { try { o.disconnect(); } catch (e) {} }, 800); }
+  function enabled() { try { return localStorage.getItem('dvMusic') !== 'off'; } catch (e) { return true; } }
+  var wanted = false;
+  setInterval(function () { if (wanted && enabled() && canPlay()) start(); else stop(); }, 300);
+  return { want: function () { wanted = true; }, toggle: function () { var en = !enabled(); try { localStorage.setItem('dvMusic', en ? 'on' : 'off'); } catch (e) {}
+    wanted = true; audio(); $('musBtn').textContent = en ? '🔊' : '🔇'; }, enabled: enabled };
+})();
 // ---------- Снимени гласови (zvuci/) ----------
 var CLIPS = { omg: 'zvuci/omg.m4a' }, clipBuf = {}, clipsLoading = false;
 function loadClips() {
@@ -967,6 +1005,12 @@ function burst(dur, type, freq, vol, delay) {   // подолг шум: гром
   s.connect(f); f.connect(g); g.connect(c.destination); s.start(c.currentTime + (delay || 0));
 }
 // звукот го следи движењето: колку побрзо стискаш, толку е погласен; висината зависи од притисокот
+function fizz(delay, vol) {   // едно меурче: краток „плоп“ што оди нагоре
+  var c = audio(); if (!c) return; var t = c.currentTime + (delay || 0), f = 700 + Math.random() * 1100, o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 2.4, t + .05);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .08, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + .07);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .09);
+}
 function liveSound(speed, squeeze, deform, mat) {
   if (!ac) return; var t = ac.currentTime;
   var base = mat === 'crunch' ? .1 : mat === 'gel' ? .34 : .26;
@@ -976,6 +1020,7 @@ function liveSound(speed, squeeze, deform, mat) {
   if (mat === 'crunch') { var cr = clamp(speed * 1.1 + (hand.down ? .06 + squeeze * .22 : 0), 0, .95);   // крцкање: и додека држиш
     if (Math.random() < cr) click(1400 + Math.random() * 3600, .22 + Math.random() * .16);
     if (Math.random() < cr * .35) click(2600 + Math.random() * 2600, .18, .012 + Math.random() * .02); }
+  if (mat === 'gel' && Math.random() < speed * .45 + (hand.down ? squeeze * .05 : 0)) fizz(0, .05 + Math.random() * .05);   // газирани меурчиња
   if (mat !== 'crunch' && mat !== 'plush' && Math.random() < speed * .22) click(500 + Math.random() * 700, .16);
 }
 
@@ -1306,7 +1351,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-16';
+var APP_VER = '2026-11-17-17';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1410,13 +1455,17 @@ function pauseCheck() {
 var enterPlayed = false;
 function enterSound() {
   if (enterPlayed) return; enterPlayed = true; audio();
-  [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .18, 'triangle', .14, k * .08); });   // брзо арпеџо нагоре
-  tone(300, 1500, .45, 'sine', .1, .35); click(2400, .3, .36); burst(.25, 'bandpass', 1800, .15, .42);   // „вжжуп“ + пукнување
-  [1047, 1319, 1568].forEach(function (f) { tone(f, f, .5, 'triangle', .08, .75); });
-  setTimeout(function () { say("It's squishy tiiiiime!"); }, 450);
-  var gr = GREET[myHash()]; if (gr) setTimeout(function () { say(gr[1]); }, 2300);   // личен поздрав по „squishy time“
+  // „Soda pop“: отворање лименка (пссст) → меурчиња → весело арпеџо → „It's squishy time!“
+  click(1800, .5); burst(.5, 'highpass', 3800, .32, .02);
+  for (var b = 0; b < 14; b++) fizz(.12 + b * .045 + Math.random() * .03, .06 + Math.random() * .05);
+  [659, 784, 988, 1319].forEach(function (f, k) { tone(f, f, .16, 'square', .045, .75 + k * .085); tone(f, f, .2, 'triangle', .11, .75 + k * .085); });
+  tone(1568, 1568, .45, 'triangle', .1, 1.1); tone(2093, 2093, .4, 'sine', .05, 1.1); click(3000, .25, 1.1);
+  setTimeout(function () { say("It's squishy tiiiiime!"); }, 1250);
+  var gr = GREET[myHash()]; if (gr) setTimeout(function () { say(gr[1]); }, 3100);   // личен поздрав по „squishy time“
+  setTimeout(function () { music.want(); }, 4600);   // позадинската музика почнува по поздравот
 }
 document.addEventListener('pointerdown', enterSound, { once: true, capture: true });
+$('musBtn').textContent = music.enabled() ? '🔊' : '🔇'; $('musBtn').addEventListener('click', function (e) { e.stopPropagation(); music.toggle(); });
 pauseCheck(); setInterval(pauseCheck, 1000);
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') checkVersion(); });
 window.addEventListener('pageshow', function (e) { if (e.persisted) { verChecked = 0; checkVersion(); } });
