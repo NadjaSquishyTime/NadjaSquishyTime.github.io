@@ -1135,7 +1135,23 @@ document.addEventListener('touchmove', function (e) { if (e.touches && e.touches
 var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () {});
+// Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
+var APP_VER = '2026-11-17-1';
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
+var verChecked = 0;
+function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
+  if (!/^https?:$/.test(location.protocol) || !window.fetch || Date.now() - verChecked < 30000) return; verChecked = Date.now();
+  fetch('index.html?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+    var m = t.match(/var APP_VER = '([^']+)'/); if (!m || m[1] === APP_VER) return;
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function (rg) { if (rg) rg.update(); });
+    var k = 'dvReload-' + m[1], t0 = 0; try { t0 = +sessionStorage.getItem(k) || 0; } catch (e) {}
+    if (Date.now() - t0 < 120000 || hand.down) return;   // заштита: не освежувај во круг
+    try { sessionStorage.setItem(k, Date.now()); } catch (e) {} location.reload();
+  }).catch(function () {});
+}
+checkVersion();
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') checkVersion(); });
+window.addEventListener('pageshow', function (e) { if (e.persisted) { verChecked = 0; checkVersion(); } });
 
 if (!CanvasRenderingContext2D.prototype.roundRect) CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) { this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); };
 home();
