@@ -318,6 +318,7 @@ var V = [
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
+  { id: 'pistachio', name: 'Сладолед пистаќ', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#f3ffd0', '#b6e05a', '#78a82a'] },
   { id: 'gold', name: 'Златна', rar: 'golden', c: ['#fff8cf', '#f2c230', '#a8700f'], gold: 1, a: .72, foil: 1, chunk: ['#fff3a6', '#ffd700', '#fffbe0', '#e0a020', '#f7c948'], gl: ['#ffffff', '#fff3a6'], gn: 24 }
 ];
 // Advent Calendar: 12 празнични мини кнедли (не се добиваат од кошнички)
@@ -369,9 +370,13 @@ function restShape() {   // купола: тркалезен врв, зарам�
   return p;
 }
 function ballShape() { var p = []; for (var i = 0; i < N; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / N; p.push({ x: CX + 108 * Math.cos(a), y: CY + 108 * Math.sin(a) }); } return p; }
-var SHAPES = { dome: restShape(), bear: bearShape(), ball: ballShape() }, REST = SHAPES.dome, SH = { top: RYT, bot: RYB, gap: 40 };
+function barShape() {   // сладолед на стапче: заоблен правоаголник
+  var p = []; for (var i = 0; i < N; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / N, c = Math.cos(a), s = Math.sin(a);
+    p.push({ x: CX + 84 * (c < 0 ? -1 : 1) * Math.pow(Math.abs(c), .45), y: CY - 34 + 112 * (s < 0 ? -1 : 1) * Math.pow(Math.abs(s), .45) }); } return p;
+}
+var SHAPES = { dome: restShape(), bear: bearShape(), ball: ballShape(), bar: barShape() }, REST = SHAPES.dome, BB = { x0: 80, x1: 320, y0: 140, y1: 300 };
 function useShape(v) { var s = v.shape || 'dome'; REST = SHAPES[s]; A0 = area(REST);
-  SH = s === 'bear' ? { top: 134, bot: 136, gap: 130 } : s === 'ball' ? { top: 108, bot: 108, gap: 78 } : { top: RYT, bot: RYB, gap: 40 }; }
+  BB = { x0: 1e9, x1: -1e9, y0: 1e9, y1: -1e9 }; REST.forEach(function (p) { BB.x0 = Math.min(BB.x0, p.x); BB.x1 = Math.max(BB.x1, p.x); BB.y0 = Math.min(BB.y0, p.y); BB.y1 = Math.max(BB.y1, p.y); }); }
 function decor(v) {
   if (v._d) return v._d;
   var r = rng(hash(v.id)), d = { gl: [], beads: [], bits: [], ch: [] }, i;
@@ -380,6 +385,23 @@ function decor(v) {
   if (v.plush || v.fuzz) { d.fz = []; for (i = 0; i < 240; i++) d.fz.push({ i: r() * N, t: Math.sqrt(r()) * .97, c: r() < .5 ? '#ffffff' : '#000000' }); }
   for (i = 0; i < (v.gn || 0); i++) d.gl.push({ i: r() * N, t: Math.sqrt(r()) * .9, s: (v.big ? 1.6 : 1) * (.8 + r() * 1.6), c: v.gl[Math.floor(r() * v.gl.length)], ph: r() * 6.28 });
   if (v.beads) for (i = 0; i < 22; i++) d.beads.push({ i: r() * N, t: .15 + Math.sqrt(r()) * .68, s: 9 + r() * 6, c: v.beads[i % v.beads.length] });
+  if (v.bar) {   // чоколадна обвивка: парчиња што пукаат, со сецкани ореви
+    var S = 9, RT = [.4, .74, 1.1], G = [], r0, sx;
+    for (r0 = 0; r0 < RT.length; r0++) { G[r0] = []; for (sx = 0; sx < S; sx++) G[r0].push({ fi: (sx - .5 + (r0 < 2 ? (r() - .5) * .75 : (r() - .5) * .3) + r0 * .45) * N / S, t: RT[r0] + (r0 < 2 ? (r() - .5) * .22 : 0) }); G[r0].push({ fi: G[r0][0].fi + N, t: G[r0][0].t }); }
+    var line = function (a, b, n) { var o = []; for (var k = 0; k < n; k++) o.push({ fi: a.fi + (b.fi - a.fi) * k / n, t: a.t + (b.t - a.t) * k / n }); return o; };
+    var cell = function (corners, pts, th) { var nuts = []; for (var k = 0; k < 5; k++) { var w = corners.map(function () { return r() + .05; }), sw = w.reduce(function (x, y) { return x + y; });
+      nuts.push({ w: w.map(function (x) { return x / sw; }), s: 2.5 + r() * 3.5, rot: r() * 6.28, k: r() < .5 }); } return { c: corners, pts: pts, th: th, nuts: nuts }; };
+    d.shell = [];
+    var mid = { fi: r() * N, t: .08 };   // средината е поделена на три парчиња
+    var near = function (q) { return { fi: mid.fi + Math.round((q.fi - mid.fi) / N) * N, t: mid.t }; };   // иста патека од средината за соседните парчиња
+    for (sx = 0; sx < S; sx += 3) { var cr = [mid, G[0][sx], G[0][sx + 1], G[0][sx + 2], G[0][sx + 3]], pts = line(near(G[0][sx]), G[0][sx], 3);
+      for (var e = 0; e < 3; e++) pts = pts.concat(line(G[0][sx + e], G[0][sx + e + 1], 4)); d.shell.push(cell(cr, pts.concat(line(G[0][sx + 3], near(G[0][sx + 3]), 3)), .1 + r() * .25)); }
+    for (r0 = 0; r0 < RT.length - 1; r0++) for (sx = 0; sx < S; sx++) {
+      var a1 = G[r0][sx], b1 = G[r0][sx + 1], c1 = G[r0 + 1][sx + 1], d1 = G[r0 + 1][sx];
+      if (r0 === 1 && sx === 0) continue;   // каснато на врвот
+      d.shell.push(cell([a1, b1, c1, d1], line(a1, b1, 4).concat(line(b1, c1, 3), line(c1, d1, 4), line(d1, a1, 3)), (r0 ? .35 : .2) + r() * .55));
+    }
+  }
   if (v.hearts || v.spr) for (i = 0; i < 20; i++) d.bits.push({ i: r() * N, t: .2 + Math.sqrt(r()) * .65, rot: r() * 6.28, c: v.spr ? v.spr[i % v.spr.length] : '#ffffff' });
   return v._d = d;
 }
@@ -418,6 +440,33 @@ var FACE = {
 };
 
 // ---------- Цртање ----------
+function shell(g, B, d, v, minX, minY, maxX, maxY) {
+  var L = v._crack || 0, pr = v === cur ? hand.q * hand.h : 0;
+  var cg = g.createLinearGradient(minX, minY, maxX, maxY); cg.addColorStop(0, '#6b3d26'); cg.addColorStop(.5, '#4a2818'); cg.addColorStop(1, '#2e170c');
+  d.shell.forEach(function (c) {
+    var pts = c.pts.map(function (q) { return B(q.fi, q.t); }), cx = 0, cy = 0;
+    pts.forEach(function (p) { cx += p.x; cy += p.y; }); cx /= pts.length; cy /= pts.length;
+    var gap = L >= c.th ? clamp((L - c.th) * .45, .035, .16) + pr * .06 : 0, k = 1 - gap;
+    var T = function (p) { return { x: cx + (p.x - cx) * k, y: cy + (p.y - cy) * k - gap * 18 }; };
+    pts = pts.map(T);
+    var path = function () { g.beginPath(); pts.forEach(function (p, i) { i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y); }); g.closePath(); };
+    if (gap) { g.save(); g.translate(1.5, 3); path(); g.fillStyle = 'rgba(40,60,10,.45)'; g.fill(); g.restore(); }   // сенка под парчето
+    path(); g.fillStyle = cg; g.fill(); if (!gap) { g.strokeStyle = cg; g.lineWidth = 1.2; g.stroke(); }
+    else { g.strokeStyle = 'rgba(255,220,190,.22)'; g.lineWidth = 1.4; g.stroke(); }
+    if (!gap && L > c.th * .6) { path(); g.strokeStyle = 'rgba(15,5,0,' + clamp((L - c.th * .6) / (c.th * .4), 0, 1) * .8 + ')'; g.lineWidth = 1.6; g.stroke(); }   // пукнатина
+    var cs = c.c.map(function (q) { return B(q.fi, q.t); });
+    c.nuts.forEach(function (n) { var x = 0, y = 0; n.w.forEach(function (w, i) { x += cs[i].x * w; y += cs[i].y * w; }); var p = T({ x: x, y: y });
+      g.save(); g.translate(p.x, p.y); g.rotate(n.rot); g.fillStyle = n.k ? '#d39a5c' : '#b8743a'; g.beginPath(); g.moveTo(-n.s, -n.s * .6); g.lineTo(n.s, -n.s * .8); g.lineTo(n.s * .7, n.s * .7); g.lineTo(-n.s * .8, n.s * .5); g.closePath(); g.fill();
+      g.fillStyle = 'rgba(255,240,210,.5)'; g.fillRect(-n.s * .5, -n.s * .5, n.s * .6, n.s * .35); g.restore(); });
+  });
+}
+function stick(g, B) {   // дрвено стапче
+  var b = B(N * .5, 1), x = b.x, y = b.y - 30, w = 34, h = 110;
+  var sg = g.createLinearGradient(x - w / 2, 0, x + w / 2, 0); sg.addColorStop(0, '#d9ad72'); sg.addColorStop(.5, '#f2d29e'); sg.addColorStop(1, '#c39058');
+  g.fillStyle = sg; g.beginPath(); g.roundRect(x - w / 2, y, w, h, [2, 2, w / 2, w / 2]); g.fill();
+  g.fillStyle = 'rgba(80,40,10,.35)'; g.fillRect(x - w / 2, y, w, 40);
+  g.strokeStyle = 'rgba(120,70,30,.45)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y + 72, 10, 20, 0, 0, 6.3); g.stroke();
+}
 function draw(g, P, v, time) {
   var i, cx = 0, cy = 0, minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
   for (i = 0; i < N; i++) { cx += P[i].x; cy += P[i].y; minX = Math.min(minX, P[i].x); maxX = Math.max(maxX, P[i].x); minY = Math.min(minY, P[i].y); maxY = Math.max(maxY, P[i].y); }
@@ -433,9 +482,10 @@ function draw(g, P, v, time) {
     g.closePath();
   }
   function soft(p, r, col, al) { var rg = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(255,255,255,0)'); g.globalAlpha = al; g.fillStyle = rg; g.beginPath(); g.arc(p.x, p.y, r, 0, 6.3); g.fill(); g.globalAlpha = 1; }
-  var d = decor(v), hl = B(N * .86, .5), bear = v.shape === 'bear', plain = bear || v.shape === 'ball';
+  var d = decor(v), hl = B(N * .86, .5), bear = v.shape === 'bear', plain = bear || v.shape === 'ball' || v.bar;
 
   if (v.glow) soft({ x: cx, y: cy }, 190, v.glow, .35 + .1 * Math.sin(time * 2));
+  if (v.bar) stick(g, B);
   if (v.feet) [B(N * .61, 1.0), B(N * .39, 1.0)].forEach(function (f) {   // шепи што ѕиркаат оддолу
     var fg = g.createRadialGradient(f.x - 7, f.y - 8, 2, f.x, f.y, 30); fg.addColorStop(0, v.feetc || v.c[1]); fg.addColorStop(1, v.feetc || v.c[2]);
     g.fillStyle = fg; g.beginPath(); g.ellipse(f.x, f.y + 4, 30, 25, 0, 0, 6.3); g.fill();
@@ -494,6 +544,7 @@ function draw(g, P, v, time) {
     g.beginPath(); g.moveTo(bx, by); for (var bk = 1; bk <= 5; bk++) { bx += (cx - bs.x) / 5 + (br() - .5) * 36; by += (cy - bs.y) / 5 + (br() - .5) * 36; g.lineTo(bx, by); }
     g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = 'rgba(150,210,255,.32)'; g.lineWidth = 8; g.stroke(); g.strokeStyle = '#eef8ff'; g.lineWidth = 2.2; g.stroke(); }
   if (v.stripes) { var Kc = B(0, .48); g.fillStyle = v.stripes; for (var sk = 0; sk < 14; sk += 2) { var s1 = B(sk * N / 14 + N / 28, 1.08), s2b = B((sk + 1) * N / 14 + N / 28, 1.08); g.beginPath(); g.moveTo(Kc.x, Kc.y); g.lineTo(s1.x, s1.y); g.lineTo(s2b.x, s2b.y); g.fill(); } }
+  if (d.shell) shell(g, B, d, v, minX, minY, maxX, maxY);
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   // сенка по рабовите за волумен
   var eg = g.createRadialGradient(cx - 14, cy - 22, 60, cx, cy, 170); eg.addColorStop(0, 'rgba(0,0,0,0)'); eg.addColorStop(1, 'rgba(20,0,40,.34)');
@@ -517,7 +568,7 @@ function draw(g, P, v, time) {
 
   // лице (се деформира заедно со телото)
   var eL = B(N * .635, .46), eR = B(N * .365, .46), mo = B(N * .5, .44), er = 13;
-  if (bear) bearFace(g, B); else if (!v.minis) {
+  if (bear) bearFace(g, B); else if (!v.minis && !v.bar) {
   if (FACE[v.face]) FACE[v.face](g, B, eL, eR, mo); else {
   if (v.face === 'shades') { g.strokeStyle = '#16121f'; g.lineWidth = 4; g.beginPath(); g.moveTo(eL.x, eL.y - 3); g.lineTo(eR.x, eR.y - 3); g.stroke(); }
   [eL, eR].forEach(function (e) {
@@ -531,7 +582,7 @@ function draw(g, P, v, time) {
   } }
 
   // сјај
-  if (v.plush || v.fuzz) soft(hl, 90, '#ffffff', v.fuzz ? .4 : .25); else {
+  if (v.plush || v.fuzz) soft(hl, 90, '#ffffff', v.fuzz ? .4 : .25); else if (v.bar) soft(hl, 70, '#ffffff', .22); else {
   soft(hl, 62, '#ffffff', .8);
   g.beginPath(); for (i = 0; i <= 8; i++) { var s2 = B(N * (.79 + i * .016), .8); i ? g.lineTo(s2.x, s2.y) : g.moveTo(s2.x, s2.y); }
   g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 10; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke();
@@ -634,7 +685,7 @@ function liveSound(speed, squeeze, deform, mat) {
 // ---------- Меко тело ----------
 var P = [], hand = { down: false, h: 0, q: 0, x: CX, tx: CX, t0: 0, y0: 0, y: 0, peak: 0 }, cur = null, running = false, lastQ = 0;
 function resetBody() { P = REST.map(function (r) { return { x: r.x, y: r.y, px: r.x, py: r.y }; }); }
-var A0 = area(REST);
+var A0 = area(REST), AM = 1;   // AM: колку се „надува“ кога палците притискаат одпред
 function area(p) { var a = 0; for (var i = 0; i < N; i++) { var n = p[(i + 1) % N]; a += p[i].x * n.y - n.x * p[i].y; } return a / 2; }
 function step(fingers, ks, damp) {
   var i, k, p;
@@ -645,7 +696,7 @@ function step(fingers, ks, damp) {
       var dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 1, r0 = Math.hypot(rb.x - ra.x, rb.y - ra.y), f = (d - r0) / d * .22;
       a.x += dx * f; a.y += dy * f; b.x -= dx * f; b.y -= dy * f; }
     var A = area(P), per = 0; for (i = 0; i < N; i++) per += Math.hypot(P[(i + 1) % N].x - P[i].x, P[(i + 1) % N].y - P[i].y);
-    var push = (A0 - A) / per * .55;
+    var push = (A0 * AM - A) / per * .55;
     var nx = [], ny = []; for (i = 0; i < N; i++) { var pr = P[(i + N - 1) % N], nt = P[(i + 1) % N], tx = nt.x - pr.x, ty = nt.y - pr.y, l = Math.hypot(tx, ty) || 1; nx[i] = ty / l; ny[i] = -tx / l; }
     for (i = 0; i < N; i++) { P[i].x += nx[i] * push; P[i].y += ny[i] * push; }
     // измазнување на деформацијата (не на самата форма), за да останат ушите и шепите
@@ -655,29 +706,80 @@ function step(fingers, ks, damp) {
       for (i = 0; i < N; i++) { var ex = P[i].x - F.x, ey = P[i].y - F.y, dd = Math.sqrt(ex * ex + ey * ey); if (dd < F.r && dd > .01) { P[i].x = F.x + ex / dd * F.r; P[i].y = F.y + ey / dd * F.r; } } }
   }
 }
-function fingerList() {
-  var q = hand.q, off = (1 - hand.h) * 300, x = hand.x + off;
-  var hg = SH.gap / 2, yT = (CY - SH.top - 46) + q * (SH.top + 46 - hg - 24), yB = (CY + SH.bot + 52) - q * (SH.bot + 52 - hg - 28);
-  return [{ x: x - 20, y: yT + 3, r: 24, top: 1, ang: -.22 }, { x: x + 30, y: yT - 3, r: 23, top: 1, ang: -.3 }, { x: x + 4, y: yB, r: 28, top: 0, ang: .34 }];
+// ---------- Раце: двете дланки го држат од страните, палците притискаат одпред ----------
+function handPose() {
+  var q = hand.q, drop = (1 - hand.h) * 300, sx = (hand.x - CX) * .45, hgt = BB.y1 - BB.y0, bar = cur && cur.bar;
+  var ty = BB.y0 + hgt * (bar ? .5 : .3), spread = bar ? 28 : 36, ang = bar ? .42 : .95;
+  return {
+    palms: [{ x: BB.x0 - 60 + q * 18, y: BB.y0 + hgt * .7 + drop, r: 66 }, { x: BB.x1 + 60 - q * 18, y: BB.y0 + hgt * .7 + drop, r: 66 }],
+    thumbs: [{ x: CX + sx - spread + q * 7, y: ty + q * 7 + drop, ang: Math.PI / 2 + ang, nail: 'nude' },
+             { x: CX + sx + spread - q * 7, y: ty - 4 + q * 7 + drop, ang: Math.PI / 2 - ang, nail: 'black' }],
+    drop: drop, hgt: hgt
+  };
 }
-function drawFinger(g, F) {
-  var L = 380, ex = F.x + Math.cos(F.ang) * L, ey = F.y + Math.sin(F.ang) * L;
-  g.lineCap = 'round';
-  g.beginPath(); g.moveTo(F.x, F.y); g.lineTo(ex, ey); g.strokeStyle = '#b9805f'; g.lineWidth = F.r * 2 + 3; g.stroke();
-  var nx = -Math.sin(F.ang), ny = Math.cos(F.ang), lg = g.createLinearGradient(F.x - nx * F.r, F.y - ny * F.r, F.x + nx * F.r, F.y + ny * F.r);
-  lg.addColorStop(0, '#fbdcc4'); lg.addColorStop(.55, '#f0c3a1'); lg.addColorStop(1, '#d59f7c');
-  g.beginPath(); g.moveTo(F.x, F.y); g.lineTo(ex, ey); g.strokeStyle = lg; g.lineWidth = F.r * 2; g.stroke();
-  g.save(); g.translate(F.x, F.y); g.rotate(F.ang);
-  if (F.top) { var ng = g.createLinearGradient(0, -F.r * .7, 0, F.r * .2); ng.addColorStop(0, '#fff3ee'); ng.addColorStop(1, '#f3c4bb');
-    g.fillStyle = ng; g.beginPath(); g.roundRect(-F.r * .62, -F.r * .72, F.r * 1.35, F.r * 1.1, F.r * .5); g.fill();
-    g.strokeStyle = 'rgba(150,90,70,.35)'; g.lineWidth = 1.2; g.stroke();
-    g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(-F.r * .1, -F.r * .45, F.r * .28, F.r * .1, 0, 0, 6.3); g.fill(); }
+var SKIN = ['#fbdcc8', '#f2c3a6', '#d99f80'];
+function skinStroke(g, x1, y1, x2, y2, r) {
+  var ang = Math.atan2(y2 - y1, x2 - x1), nx = -Math.sin(ang), ny = Math.cos(ang);
+  g.lineCap = 'round'; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.strokeStyle = '#b97f62'; g.lineWidth = r * 2 + 3; g.stroke();
+  var lg = g.createLinearGradient(x1 - nx * r, y1 - ny * r, x1 + nx * r, y1 + ny * r); lg.addColorStop(0, SKIN[0]); lg.addColorStop(.55, SKIN[1]); lg.addColorStop(1, SKIN[2]);
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.strokeStyle = lg; g.lineWidth = r * 2; g.stroke();
+}
+function edgeX(y, side) {   // каде е работ на телото на дадена висина
+  var best = null, bd = 1e9; for (var i = 0; i < N; i++) { var p = P[i]; if ((p.x - CX) * side <= 0) continue; var dd = Math.abs(p.y - y); if (dd < bd) { bd = dd; best = p.x; } }
+  return best === null ? CX + side * 100 : best;
+}
+function drawHandsBack(g, H) {   // дланки и прсти зад кнедлата (се гледаат само деловите надвор од неа)
+  [-1, 1].forEach(function (sd) {
+    var pc = { x: (sd < 0 ? BB.x0 : BB.x1) + sd * 18, y: BB.y1 + 40 + H.drop };
+    var pg = g.createRadialGradient(pc.x - sd * 10, pc.y - 20, 10, pc.x, pc.y, 110); pg.addColorStop(0, SKIN[0]); pg.addColorStop(.7, SKIN[1]); pg.addColorStop(1, SKIN[2]);
+    g.fillStyle = pg; g.beginPath(); g.ellipse(pc.x, pc.y, 78, 108, sd * -.35, 0, 6.3); g.fill();
+    for (var k = 0; k < 4; k++) { var y = BB.y0 + H.hgt * (.2 + k * .17) + H.drop, ex = edgeX(y, sd);
+      skinStroke(g, ex + sd * 34, y + 16, ex - sd * 30, y - 4, 14 - k * .8);
+      g.strokeStyle = 'rgba(140,85,60,.28)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(ex + sd * 16, y - 3); g.quadraticCurveTo(ex + sd * 12, y + 6, ex + sd * 15, y + 15); g.stroke(); }
+  });
+}
+function drawThumb(g, T) {
+  var r = 22, L = 300, ex = T.x + Math.cos(T.ang) * L, ey = T.y + Math.sin(T.ang) * L;
+  skinStroke(g, T.x, T.y, ex, ey, r);
+  skinStroke(g, T.x + Math.cos(T.ang) * 120, T.y + Math.sin(T.ang) * 120, ex, ey, r * 1.5);   // корен на палецот
+  g.save(); g.translate(T.x, T.y); g.rotate(T.ang);   // +x оди кон дланката, врвот е во (0,0)
+  if (T.nail === 'black') { var bg = g.createLinearGradient(0, -r, 0, r); bg.addColorStop(0, '#2c2c34'); bg.addColorStop(1, '#050507');
+    g.fillStyle = bg; g.beginPath(); g.roundRect(-r * .72, -r * .62, r * 1.6, r * 1.24, r * .6); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(-r * .15, -r * .3, r * .32, r * .1, 0, 0, 6.3); g.fill(); dot(g, { x: r * .5, y: r * .28 }, 1.6, 'rgba(255,255,255,.7)'); }
+  else { var ng = g.createLinearGradient(0, -r, 0, r); ng.addColorStop(0, '#fbe3d8'); ng.addColorStop(1, '#e6b5a2');
+    g.fillStyle = ng; g.beginPath(); g.roundRect(-r * .72, -r * .62, r * 1.6, r * 1.24, r * .6); g.fill(); g.strokeStyle = 'rgba(150,90,70,.35)'; g.lineWidth = 1.2; g.stroke();
+    g.strokeStyle = '#16121f'; g.lineWidth = 1.6; g.lineJoin = 'miter'; g.beginPath(); [[.55, -.5], [.25, -.28], [.5, -.05], [.15, .15], [.45, .35], [.2, .5]].forEach(function (z, i) { i ? g.lineTo(z[0] * r, z[1] * r) : g.moveTo(z[0] * r, z[1] * r); }); g.stroke();   // цик-цак линија
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-r * .2, -r * .32, r * .28, r * .08, 0, 0, 6.3); g.fill(); }
   g.strokeStyle = 'rgba(140,85,60,.3)'; g.lineWidth = 2;
-  [2.6, 2.9, 5.6].forEach(function (m) { g.beginPath(); g.moveTo(F.r * m, -F.r * .55); g.quadraticCurveTo(F.r * (m + .12), 0, F.r * m, F.r * .55); g.stroke(); });
+  [2.4, 2.75].forEach(function (m) { g.beginPath(); g.moveTo(r * m, -r * .6); g.quadraticCurveTo(r * (m + .12), 0, r * m, r * .6); g.stroke(); });
   g.restore();
+}
+function bodyPath(g) { g.beginPath(); var m = { x: (P[N - 1].x + P[0].x) / 2, y: (P[N - 1].y + P[0].y) / 2 }; g.moveTo(m.x, m.y);
+  for (var k = 0; k < N; k++) { var n = P[(k + 1) % N]; g.quadraticCurveTo(P[k].x, P[k].y, (P[k].x + n.x) / 2, (P[k].y + n.y) / 2); } g.closePath(); }
+function drawDents(g, H, q) {   // вдлабнатини каде што притискаат палците
+  if (q < .03) return; g.save(); bodyPath(g); g.clip();
+  H.thumbs.forEach(function (T) { var x = T.x - Math.cos(T.ang) * 8, y = T.y - Math.sin(T.ang) * 8, R = 30 + q * 22;
+    var rg = g.createRadialGradient(x, y, 4, x, y, R); rg.addColorStop(0, 'rgba(30,0,40,' + .38 * q + ')'); rg.addColorStop(.7, 'rgba(30,0,40,' + .12 * q + ')'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(x, y, R, 0, 6.3); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,' + .14 * q + ')'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, R * .85, Math.PI * 1.1, Math.PI * 1.6); g.stroke(); });
+  g.restore();
+}
+function drawSleeves(g, drop) {   // ракави на карирана кошула
+  [-1, 1].forEach(function (sd) { g.save(); g.translate(CX + sd * 178, H + 18 + drop); g.rotate(sd * -.5);
+    g.beginPath(); g.roundRect(-70, -40, 140, 120, 14); g.clip(); g.fillStyle = '#f4f4f4'; g.fillRect(-70, -40, 140, 120);
+    g.fillStyle = 'rgba(20,20,24,.85)'; for (var k = -70; k < 70; k += 22) { g.fillRect(k, -40, 9, 120); g.fillRect(-70, k + 30, 140, 9); }
+    g.fillStyle = 'rgba(20,20,24,.35)'; for (k = -64; k < 70; k += 22) { g.fillRect(k + 11, -40, 2, 120); g.fillRect(-70, k + 41, 140, 2); }
+    g.restore(); });
 }
 var cv = $('cv'), g2 = cv.getContext('2d'), lastT = 0;
 function sizeCanvas() { var dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = W * dpr; cv.height = H * dpr; g2.setTransform(dpr, 0, 0, dpr, 0, 0); }
+function crackStep(dt) {   // чоколадото пука додека притискаш; секое ново парче што ќе пукне крцка
+  var L0 = cur._crack || 0, L = Math.min(1.3, L0 + Math.max(0, hand.q - .3) * dt * .4); cur._crack = L;
+  decor(cur).shell.forEach(function (c) {
+    if (L0 < c.th && L >= c.th) { click(2200 + Math.random() * 2400, .6); click(3800, .35, .02); burst(.14, 'highpass', 2600, .4); if (navigator.vibrate) navigator.vibrate(18); }
+    else if (L0 < c.th * .6 && L >= c.th * .6) click(4200, .25);
+  });
+}
 function frame(now) {
   if (!running) return;
   var dt = lastT ? Math.min((now - lastT) / 1000, .04) : .016; lastT = now;
@@ -687,14 +789,15 @@ function frame(now) {
   hand.q += (tq - hand.q) * (hand.down ? .22 : .3);
   hand.x += (hand.tx - hand.x) * .2; hand.peak = Math.max(hand.peak, hand.q);
   var mat = cur.mat || 'taba', ks = mat === 'gel' ? .0045 : mat === 'crunch' ? .003 : .0017, damp = mat === 'gel' ? .9 : .8;
-  var fl = fingerList(), act = hand.h > .05 ? fl : [];
+  var HP = handPose(), act = hand.h > .05 ? HP.palms : []; AM = 1 + .2 * hand.q * hand.h;
   step(act, ks, damp); step(act, ks, damp);
+  if (cur.bar && hand.down) crackStep(dt);
   var def = 0, sp = 0; for (var i = 0; i < N; i++) { def += Math.hypot(P[i].x - REST[i].x, P[i].y - REST[i].y); sp += Math.hypot(P[i].x - P[i].px, P[i].y - P[i].py); }
   def /= N * 60; sp /= N;
   g2.clearRect(0, 0, W, H);
-  if (hand.h > .02) drawFinger(g2, fl[2]);
+  if (hand.h > .02) drawHandsBack(g2, HP);
   draw(g2, P, cur, now / 1000);
-  if (hand.h > .02) { drawFinger(g2, fl[0]); drawFinger(g2, fl[1]); }
+  if (hand.h > .02) { drawDents(g2, HP, hand.q * hand.h); drawThumb(g2, HP.thumbs[0]); drawThumb(g2, HP.thumbs[1]); drawSleeves(g2, HP.drop * 1.2); }
   liveSound(clamp(sp * .5 + Math.abs(hand.q - lastQ) * 6, 0, 1.5), hand.q, def, mat); lastQ = hand.q;
   $('meter').style.width = clamp(hand.q, 0, 1) * 100 + '%';
   requestAnimationFrame(frame);
@@ -719,14 +822,14 @@ function up() {
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 function play(v) {
-  cur = v; audio(); useShape(v); resetBody(); hand.down = false; hand.h = 0; hand.q = 0; cur._n = 0;
+  v._crack = 0; cur = v; audio(); useShape(v); resetBody(); hand.down = false; hand.h = 0; hand.q = 0; cur._n = 0;
   var r = RAR[v.rar]; $('play').style.setProperty('--rc', v.glow || r.c);
-  $('pName').textContent = v.name; $('pSub').textContent = { gel: 'Гел · брзо се враќа', crunch: 'Crunchy · крцка', taba: 'Taba силикон · slow-rise', plush: 'Плиш · меко и тивко' }[v.mat || 'taba'];
+  $('pName').textContent = v.name; $('pSub').textContent = { gel: 'Гел · брзо се враќа', crunch: v.bar ? 'Crunchy · чоколадото пука' : 'Crunchy · крцка', taba: 'Taba силикон · slow-rise', plush: 'Плиш · меко и тивко' }[v.mat || 'taba'];
   var tg = $('pTag'); tg.textContent = r.n; tg.className = 'tag' + (v.rar === 'ooak' ? ' ooak' : ''); tg.style.setProperty('--rc', r.c);
   $('pCnt').textContent = 0; $('play').classList.add('open'); sizeCanvas();
   if (!running) { running = true; lastT = 0; requestAnimationFrame(frame); }
 }
-$('back').addEventListener('click', function () { running = false; cur = null; if (nGain) nGain.gain.value = 0; $('play').classList.remove('open'); home(); });
+$('back').addEventListener('click', function () { running = false; if (cur) cur._crack = 0; cur = null; if (nGain) nGain.gain.value = 0; $('play').classList.remove('open'); home(); });
 
 // ---------- Почетен екран ----------
 function home() {
