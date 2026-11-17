@@ -157,7 +157,13 @@
   #open.reveal .taphint { display: none; } #open:not(.reveal) .result { display: none; }
   .spark { position: absolute; left: 50%; top: 45%; width: 7px; height: 7px; border-radius: 50%; background: #fff; pointer-events: none; animation: fly 1s ease-out forwards; box-shadow: 0 0 10px 2px var(--c); z-index: 3; }
   @keyframes fly { to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .spark, .flash { display: none; } }
+  .fxflake { position: absolute; top: -30px; color: #fff; pointer-events: none; z-index: 6; text-shadow: 0 0 8px #bfe3ff; animation: snowfall linear forwards; opacity: 0; }
+  @keyframes snowfall { 8% { opacity: 1; } 100% { transform: translate(40px, 105vh) rotate(360deg); opacity: .9; } }
+  .fxbulb { position: absolute; top: -20px; width: 11px; height: 16px; border-radius: 50% 50% 45% 45%; background: var(--c); box-shadow: 0 0 14px 4px var(--c); pointer-events: none; z-index: 6; animation: bulbfall ease-in forwards; opacity: 0; }
+  @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
+  .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 80%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
+  .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
+  @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
 </head>
 <body>
@@ -180,7 +186,7 @@
     <p class="hint">Притисни и држи за да го стисне раката · влечи лево-десно</p>
     <div class="stats">
       <div class="stat"><span>Стисоци</span><b id="pCnt">0</b></div>
-      <div class="stat"><span>Притисок</span><div class="bar"><i id="meter"></i></div></div>
+      <div class="stat"><span>Притисок</span><div class="bar sq"><i id="meter"></i></div><small id="pHint" class="phint"></small></div>
     </div>
   </div>
 
@@ -315,6 +321,8 @@ var V = [
   { id: 'psanta', name: 'Плиш Дедо Мраз', rar: 'special', plush: 1, mat: 'plush', pack: 'bag', face: 'santa', hat: 'santa', c: ['#ff9a9a', '#d92b3a', '#86101d'] },
   { id: 'thunder', name: 'Henry Danger', rar: 'legend', bolt: 1, sfx: 'thunder', mat: 'gel', glow: '#4da3ff', c: ['#a8d6ff', '#2b3fae', '#090d38'], a: .88, gl: ['#ffffff', '#bfe3ff'], gn: 26 },
   { id: 'tennis', name: 'Тениски ас', rar: 'ooak', shape: 'ball', pack: 'can', fuzz: 1, seams: 1, orbit: 1, sfx: 'tennis', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'], gl: ['#ffffff', '#fffbd0'], gn: 22 },
+  { id: 'globe', name: 'Snow Ball', rar: 'ooak', season: 'xmas', shape: 'ball', globe: 1, noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
+  { id: 'gtree', name: 'Grinch Christmas Tree', rar: 'ooak', season: 'xmas', shape: 'xmastree', xdeco: 1, hat: 'santa', feet: 1, feetc: '#c0283a', sfx: 'jingle', fx: 'lights', c: ['#bfeab0', '#2f8f3a', '#145a22'], glow: '#ffd23f' },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -381,6 +389,10 @@ function useShape(v) { var s = v.shape || 'dome'; REST = SHAPES[s]; A0 = area(RE
 
 // ---------- Нови форми (храна, овошје, животни) ----------
 function boundsSH(p) { var t = 0, b = 0; p.forEach(function (q) { t = Math.max(t, CY - q.y); b = Math.max(b, q.y - CY); }); return { top: t, bot: b, gap: Math.max(44, (t + b) * .42) }; }
+function polyRay(poly) {   // форма од многуаголник: каде зракот од центарот ја сече контурата
+  return function (dx, dy) { var best = 0; for (var i = 0; i < poly.length; i++) { var a = poly[i], b = poly[(i + 1) % poly.length], ex = b[0] - a[0], ey = b[1] - a[1], den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-9) continue; var t = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den; if (t > 0 && u >= 0 && u <= 1) best = Math.max(best, t); } return [dx * best, dy * best]; };
+}
 function buildShape(sp) {
   var p = [];
   for (var i = 0; i < N; i++) {
@@ -401,7 +413,7 @@ var SHP = {
   stick: { se: [142, 52, 8] }, cookie: { se: [120, 58, 5] }, loaf: { se: [120, 90, 3, 6] }, stack: { se: [110, 84, 4] }, pud: { f: function (x, y) { return [(96 + 14 * y) * x * Math.pow(Math.abs(x), -.25), 92 * y]; } },
   soap: { se: [122, 70, 2.6] }, duck: { c: [[16, 40, 94], [-34, -66, 58], [70, 4, 62]] }, poop: { c: [[0, 72, 96], [0, 2, 72], [0, -60, 48], [10, -102, 20]] },
   paw: { c: [[0, 32, 80], [-64, -48, 30], [-23, -80, 30], [23, -80, 30], [64, -48, 30]] }, fly: { c: [[-64, -34, 62], [64, -34, 62], [-48, 50, 46], [48, 50, 46], [0, 0, 30]] },
-  critter: { c: [[0, 14, 102], [-62, -74, 32], [62, -74, 32]] }, jelly: { f: function (x, y) { return [100 * x, y < 0 ? 104 * y : 38 * Math.sqrt(y)]; } }
+  critter: { c: [[0, 14, 102], [-62, -74, 32], [62, -74, 32]] }, xmastree: { f: polyRay([[0, -127], [49, -58], [29, -56], [83, 15], [59, 17], [115, 95], [-115, 95], [-59, 17], [-83, 15], [-29, -56], [-49, -58]]) }, jelly: { f: function (x, y) { return [100 * x, y < 0 ? 104 * y : 38 * Math.sqrt(y)]; } }
 };
 for (var sk in SHP) SHAPES[sk] = buildShape(SHP[sk]);
 
@@ -613,6 +625,89 @@ function stick(g, B) {   // дрвено стапче
   g.fillStyle = 'rgba(80,40,10,.35)'; g.fillRect(x - w / 2, y, w, 40);
   g.strokeStyle = 'rgba(120,70,30,.45)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y + 72, 10, 20, 0, 0, 6.3); g.stroke();
 }
+// ---------- One of a Kind: Снежна топка ----------
+function globeBase(g, B, time) {   // украсена куќичка под стаклената топка
+  var b = B(N * .5, 1), x = b.x, y = b.y - 16, wT = 176, wB = 214, h = 74, i;
+  var bg = g.createLinearGradient(x - wB / 2, 0, x + wB / 2, 0); bg.addColorStop(0, '#7a4a28'); bg.addColorStop(.5, '#b9804a'); bg.addColorStop(1, '#6a3c1e');
+  g.fillStyle = bg; g.beginPath(); g.moveTo(x - wT / 2, y); g.lineTo(x + wT / 2, y); g.lineTo(x + wB / 2, y + h); g.lineTo(x - wB / 2, y + h); g.closePath(); g.fill();
+  g.fillStyle = '#ffd86b'; g.fillRect(x - 74, y + 22, 30, 34); g.strokeStyle = '#5a3418'; g.lineWidth = 3; g.strokeRect(x - 74, y + 22, 30, 34);   // прозорец
+  g.beginPath(); g.moveTo(x - 59, y + 22); g.lineTo(x - 59, y + 56); g.moveTo(x - 74, y + 39); g.lineTo(x - 44, y + 39); g.stroke();
+  g.fillStyle = '#8e1f2a'; g.fillRect(x + 22, y + 24, 34, h - 24); g.fillStyle = '#efe2c0'; g.fillRect(x + 12, y + 20, 9, h - 20); g.fillRect(x + 57, y + 20, 9, h - 20);   // врата со столбови
+  g.fillStyle = '#3f9a52'; g.fillRect(x + 28, y + h - 22, 13, 13); g.fillStyle = '#c9a0ff'; g.fillRect(x + 40, y + h - 18, 12, 9);
+  g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(x - wT / 2 - 4, y - 4);   // снег по горниот раб
+  for (i = 0; i <= 12; i++) { var sx = x - wT / 2 + i * wT / 12; g.quadraticCurveTo(sx - 7, y + 14 + (i % 2) * 6, sx, y + 4); }
+  g.lineTo(x + wT / 2 + 4, y - 4); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(x - wB / 2 - 4, y + h + 2);   // снег по долниот раб
+  for (i = 0; i <= 12; i++) g.quadraticCurveTo(x - wB / 2 + i * wB / 12 - 8, y + h - 14 + (i % 2) * 5, x - wB / 2 + i * wB / 12, y + h - 2);
+  g.lineTo(x + wB / 2 + 4, y + h + 2); g.closePath(); g.fill();
+  ['#ff5d7a', '#ffd23f', '#6ef08a', '#4da3ff', '#c97bff', '#ff5d7a', '#ffd23f', '#6ef08a'].forEach(function (c, k) {   // лампиончиња што трепкаат
+    g.globalAlpha = .55 + .45 * Math.abs(Math.sin(time * 3 + k)); g.fillStyle = c; g.beginPath(); g.ellipse(x - 80 + k * 23, y + 12 + (k % 2) * 3, 4, 6, 0, 0, 6.3); g.fill(); });
+  g.globalAlpha = 1;
+  g.lineCap = 'round'; g.beginPath(); g.moveTo(x - 20, y + h - 10); g.lineTo(x + 6, y + h - 10); g.arc(x + 6, y + h - 18, 8, 1.57, -1.57, true);   // бонбона-стапче
+  g.strokeStyle = '#ffffff'; g.lineWidth = 6; g.stroke(); g.strokeStyle = '#e8324a'; g.setLineDash([4, 5]); g.stroke(); g.setLineDash([]);
+}
+function globeScene(g, v, cx, cy, R, time) {   // сцена во топката + снег што се врти кога се стиска
+  var s = R / 108, i;
+  g.save(); g.translate(cx, cy); g.scale(s, s);
+  g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(0, 96, 120, 36, 0, 0, 6.3); g.fill();   // снег на дното
+  g.fillStyle = '#2f8a3e'; [[-58, -70, 22], [-58, -36, 32], [-58, 4, 42], [-58, 44, 50]].forEach(function (t) { g.beginPath(); g.moveTo(t[0], t[1] - 30); g.lineTo(t[0] + t[2], t[1] + 14); g.lineTo(t[0] - t[2], t[1] + 14); g.closePath(); g.fill(); });   // елка
+  ['#d9d9e6', '#4da3ff', '#e8324a', '#ffd23f'].forEach(function (c, k) { dot(g, { x: -70 + (k % 2) * 24, y: -40 + k * 22 }, 5, c); });
+  g.fillStyle = '#7a4a24'; g.beginPath(); g.ellipse(52, -2, 26, 34, .3, 0, 6.3); g.fill();   // вреќа
+  g.fillStyle = '#d42a2a'; g.beginPath(); g.roundRect(-12, -10, 62, 82, 22); g.fill();   // Дедо Мраз
+  g.fillStyle = '#f6f1e6'; g.fillRect(-12, 56, 62, 12); g.fillRect(14, -10, 10, 66);
+  g.fillStyle = '#1c1414'; g.fillRect(-12, 28, 62, 9); g.strokeStyle = '#ffd23f'; g.lineWidth = 2.5; g.strokeRect(12, 27, 13, 11);
+  g.fillStyle = '#1c1414'; g.fillRect(-4, 70, 18, 14); g.fillRect(24, 70, 18, 14);
+  dot(g, { x: 19, y: -30 }, 17, '#ffd2b8');
+  g.fillStyle = '#f6f1e6'; g.beginPath(); g.moveTo(1, -28); g.quadraticCurveTo(19, 18, 37, -28); g.quadraticCurveTo(19, -16, 1, -28); g.fill();   // брада
+  g.fillStyle = '#d42a2a'; g.beginPath(); g.moveTo(2, -42); g.quadraticCurveTo(20, -78, 46, -54); g.lineTo(36, -42); g.closePath(); g.fill();
+  g.fillStyle = '#f6f1e6'; g.fillRect(0, -46, 38, 8); dot(g, { x: 47, y: -54 }, 6, '#f6f1e6');
+  dot(g, { x: 13, y: -32 }, 2, '#2a1a1a'); dot(g, { x: 25, y: -32 }, 2, '#2a1a1a'); dot(g, { x: 19, y: -24 }, 3, '#ff9a8a');
+  [[-30, 74, 26, 22, '#3fb8c9', '#ffd23f'], [58, 70, 30, 26, '#59c3a8', '#e8324a'], [86, 80, 18, 16, '#c97bff', '#ffffff']].forEach(function (b) {   // подароци
+    g.fillStyle = b[4]; g.fillRect(b[0], b[1], b[2], b[3]); g.fillStyle = b[5]; g.fillRect(b[0] + b[2] / 2 - 2.5, b[1], 5, b[3]); g.fillRect(b[0], b[1] + b[3] / 2 - 2.5, b[2], 5); });
+  g.restore();
+  var d = decor(v), stir = v === cur ? hand.q * hand.h : 0;
+  if (!d.snow) { var r = rng(77); d.snow = []; for (i = 0; i < 70; i++) d.snow.push({ u: r() * 2 - 1, v: r() * 2 - 1, sp: .08 + r() * .12, s: 1.2 + r() * 2.2, ph: r() * 6.28 }); }
+  var dt = v._lt ? clamp(time - v._lt, 0, .05) : 0; v._lt = time; v._sw = clamp((v._sw || 0) * .97 + stir * dt * 3, 0, 1.5);
+  d.snow.forEach(function (f) {
+    f.v += dt * (f.sp - v._sw * .9 * Math.sin(f.ph + time)); f.u += dt * (Math.sin(time * 1.3 + f.ph) * .08 + v._sw * 1.6 * Math.cos(f.ph + time * 2));
+    if (f.v > 1) f.v -= 2; if (f.v < -1) f.v += 2; if (f.u > 1) f.u -= 2; if (f.u < -1) f.u += 2;
+    g.globalAlpha = .85; dot(g, { x: cx + f.u * R, y: cy + f.v * R }, f.s, '#ffffff'); });
+  g.globalAlpha = 1;
+}
+// ---------- One of a Kind: Украсена елка ----------
+function treeDeco(g, B, time) {
+  var i;
+  g.strokeStyle = 'rgba(160,230,255,.6)'; g.lineWidth = 4; g.lineCap = 'round';   // сини шари
+  [[.35, .62], [.62, .7], [.5, .3], [.2, .78], [.8, .78]].forEach(function (q) { var p = B(N * q[0], q[1]); g.beginPath(); g.arc(p.x, p.y, 9, .4, 4.2); g.stroke(); });
+  band(g, B, .3, .7, .84, '#fffbea', 7, .05); band(g, B, .3, .7, .84, 'rgba(200,190,160,.6)', 2, .05);   // гирланди
+  band(g, B, -.17, .17, .62, '#fffbea', 6, .05);
+  var LC = ['#ff3b5c', '#ffd23f', '#3fd27a', '#4da3ff', '#ff8a1f', '#c97bff'];
+  for (i = 0; i < 12; i++) { var p = B(N * (.27 + i * .04), .7 + (i % 2) * .06), c = LC[i % LC.length], on = .45 + .55 * Math.max(0, Math.sin(time * 4 + i * 1.7));   // лампиончиња
+    g.globalAlpha = on * .5; dot(g, p, 10, c); g.globalAlpha = 1; g.fillStyle = c; g.beginPath(); g.ellipse(p.x, p.y, 4, 6.5, (i % 3 - 1) * .4, 0, 6.3); g.fill(); dot(g, { x: p.x, y: p.y - 7 }, 2.5, '#2a2a2a'); }
+  [[.1, .5, '#e8324a'], [.9, .55, '#ffd23f'], [.25, .9, '#4da3ff'], [.75, .9, '#c97bff'], [.02, .2, '#ff8a1f']].forEach(function (o) { var p = B(N * o[0], o[1]);   // топки
+    dot(g, p, 8, o[2]); dot(g, { x: p.x - 2.5, y: p.y - 2.5 }, 2.5, 'rgba(255,255,255,.75)'); g.fillStyle = '#d9c27a'; g.fillRect(p.x - 3, p.y - 11, 6, 4); });
+  var gm = B(N * .5, .62); dot(g, { x: gm.x, y: gm.y - 10 }, 6, '#c47a3a');   // медено човече
+  g.fillStyle = '#c47a3a'; g.beginPath(); g.ellipse(gm.x, gm.y + 2, 6, 9, 0, 0, 6.3); g.fill(); g.lineWidth = 4.5; g.strokeStyle = '#c47a3a';
+  g.beginPath(); g.moveTo(gm.x - 11, gm.y - 3); g.lineTo(gm.x + 11, gm.y - 3); g.moveTo(gm.x - 4, gm.y + 9); g.lineTo(gm.x - 8, gm.y + 17); g.moveTo(gm.x + 4, gm.y + 9); g.lineTo(gm.x + 8, gm.y + 17); g.stroke();
+  dot(g, { x: gm.x, y: gm.y }, 1.3, '#fff'); dot(g, { x: gm.x, y: gm.y + 5 }, 1.3, '#fff');
+  [[.12, .78], [.88, .3]].forEach(function (q) { var p = B(N * q[0], q[1]); g.strokeStyle = '#ffffff'; g.lineWidth = 2;   // снегулки
+    for (var k = 0; k < 3; k++) { var an = k * 1.0472; g.beginPath(); g.moveTo(p.x - Math.cos(an) * 8, p.y - Math.sin(an) * 8); g.lineTo(p.x + Math.cos(an) * 8, p.y + Math.sin(an) * 8); g.stroke(); } });
+  var hp = B(N * .97, .45); g.fillStyle = '#ff7ab0'; g.beginPath(); g.moveTo(hp.x, hp.y + 8);   // срце
+  g.bezierCurveTo(hp.x - 12, hp.y - 2, hp.x - 6, hp.y - 12, hp.x, hp.y - 5); g.bezierCurveTo(hp.x + 6, hp.y - 12, hp.x + 12, hp.y - 2, hp.x, hp.y + 8); g.fill();
+}
+// ---------- Посебни звуци и ефекти ----------
+function melody(notes, step, delay) { notes.forEach(function (f, k) { if (!f) return; tone(f, f * 1.002, .5, 'triangle', .14, (delay || 0) + k * step); tone(f * 2, f * 2, .25, 'sine', .04, (delay || 0) + k * step); }); }
+function jingle(n, delay) { for (var i = 0; i < (n || 12); i++) { click(5200 + Math.random() * 2400, .22, (delay || 0) + i * .055); if (i % 3 === 0) tone(2637 + Math.random() * 500, 2600, .18, 'triangle', .05, (delay || 0) + i * .055); } }
+function specialFx(fx) {   // ефект на целиот екран кога се отвора One of a Kind
+  var o = $('open'), i;
+  for (i = 0; i < (fx === 'snow' ? 70 : 50); i++) { var e = document.createElement('span');
+    if (fx === 'snow') { e.className = 'fxflake'; e.textContent = i % 3 ? '•' : '❄'; e.style.fontSize = (10 + Math.random() * 18) + 'px'; }
+    else { e.className = 'fxbulb'; e.style.setProperty('--c', ['#ff3b5c', '#ffd23f', '#3fd27a', '#4da3ff', '#ff8a1f', '#c97bff'][i % 6]); }
+    e.style.left = Math.random() * 100 + '%'; e.style.animationDelay = Math.random() * 2.2 + 's'; e.style.animationDuration = (fx === 'snow' ? 3 + Math.random() * 3 : 2.4 + Math.random() * 1.6) + 's';
+    o.appendChild(e); setTimeout(function (n) { n.remove(); }, 7000, e); }
+  if (fx === 'snow') { melody([659, 659, 659, 0, 659, 659, 659, 0, 659, 784, 523, 587, 659], .2, .4); burst(1.6, 'highpass', 5000, .06); }   // „Jingle Bells“ како музичка кутија
+  else { jingle(16, .1); melody([587, 784, 784, 880, 784, 740, 659, 659], .24, .5); jingle(10, 2.4); }   // ѕвончиња + „We Wish You a Merry Christmas“
+}
 function draw(g, P, v, time) {
   var i, cx = 0, cy = 0, minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
   for (i = 0; i < N; i++) { cx += P[i].x; cy += P[i].y; minX = Math.min(minX, P[i].x); maxX = Math.max(maxX, P[i].x); minY = Math.min(minY, P[i].y); maxY = Math.max(maxY, P[i].y); }
@@ -632,6 +727,7 @@ function draw(g, P, v, time) {
 
   if (v.glow) soft({ x: cx, y: cy }, 190, v.glow, .35 + .1 * Math.sin(time * 2));
   if (v.bar) stick(g, B);
+  if (v.globe) globeBase(g, B, time);
   if (v.stick || v.tent) underDeco(g, B, v, cx, cy, maxY);
   if (v.feet) [B(N * .61, 1.0), B(N * .39, 1.0)].forEach(function (f) {   // шепи што ѕиркаат оддолу
     var fg = g.createRadialGradient(f.x - 7, f.y - 8, 2, f.x, f.y, 30); fg.addColorStop(0, v.feetc || v.c[1]); fg.addColorStop(1, v.feetc || v.c[2]);
@@ -692,6 +788,8 @@ function draw(g, P, v, time) {
     g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = 'rgba(150,210,255,.32)'; g.lineWidth = 8; g.stroke(); g.strokeStyle = '#eef8ff'; g.lineWidth = 2.2; g.stroke(); }
   if (v.stripes) { var Kc = B(0, .48); g.fillStyle = v.stripes; for (var sk = 0; sk < 14; sk += 2) { var s1 = B(sk * N / 14 + N / 28, 1.08), s2b = B((sk + 1) * N / 14 + N / 28, 1.08); g.beginPath(); g.moveTo(Kc.x, Kc.y); g.lineTo(s1.x, s1.y); g.lineTo(s2b.x, s2b.y); g.fill(); } }
   if (d.shell) shell(g, B, d, v, minX, minY, maxX, maxY);
+  if (v.globe) globeScene(g, v, cx, cy, (maxX - minX) / 2, time);
+  if (v.xdeco) treeDeco(g, B, time);
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   if (v.pat) PAT[v.pat](g, B, v, rng(hash(v.id) + 7), minX, minY, maxX, maxY);
   if (v.inner) innerItems(g, B, v);
@@ -813,7 +911,7 @@ function say(text) {
   try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; if (voice) u.voice = voice; u.pitch = 1.8; u.rate = 1.05; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else say(any(CHEERS)); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else say(any(CHEERS)); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
 function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
   var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -890,7 +988,7 @@ function frame(now) {
   if (!running) return;
   var dt = lastT ? Math.min((now - lastT) / 1000, .04) : .016; lastT = now;
   var tq = 0;
-  if (hand.down) tq = clamp(Math.min((now - hand.t0) / 420, 1) * .72 + (hand.y - hand.y0) / 170, .12, 1);
+  if (hand.down) tq = clamp(Math.min((now - hand.t0) / 1000, 1) * .9 + (hand.y - hand.y0) / 200, .12, 1);   // притисокот расте побавно: треба да се држи
   hand.h += ((hand.down ? 1 : 0) - hand.h) * (hand.down ? .28 : .16);
   hand.q += (tq - hand.q) * (hand.down ? .22 : .3);
   hand.x += (hand.tx - hand.x) * .2; hand.peak = Math.max(hand.peak, hand.q);
@@ -917,12 +1015,17 @@ cv.addEventListener('pointerdown', function (e) {
   tone(150, 80, .14, 'sine', .22); if (navigator.vibrate) navigator.vibrate(12);
 });
 cv.addEventListener('pointermove', function (e) { if (hand.down) { var p = cvPos(e); hand.y = p.y; hand.tx = clamp(p.x, CX - 62, CX + 50); } });
+var SQ_MIN = .8, lastSq = 0;   // стисокот се брои само над оваа линија на притисок
 function up() {
   if (!hand.down) return; hand.down = false;
   tone(170, 560, .08, 'sine', .22); click(900, .25, .04); if (navigator.vibrate) navigator.vibrate(20);
   if (hand.peak > .45 && cur.sfx === 'thunder') { click(3200, .5); burst(1.3, 'lowpass', 170, 1); tone(85, 30, 1.1, 'sawtooth', .16, .05); if (navigator.vibrate) navigator.vibrate([30, 40, 120]); }
+  if (hand.peak > .45 && cur.sfx === 'globe') { var sc = [784, 988, 1175, 1319, 1568]; melody([any(sc), any(sc), any(sc)], .14); burst(.6, 'highpass', 6000, .05); }
+  if (hand.peak > .45 && cur.sfx === 'jingle') jingle(9);
   if (hand.peak > .45 && cur.sfx === 'tennis') { tone(540, 180, .07, 'triangle', .45); click(2300, .4); }
-  if (hand.peak > .45) { SV.sq++; cur._n = (cur._n || 0) + 1; $('pCnt').textContent = cur._n;
+  var held = performance.now() - hand.t0, okSq = hand.peak > SQ_MIN && held > 600 && performance.now() - lastSq > 900;   // заштита од брзо спамирање
+  if (held > 150 && !okSq) $('pHint').textContent = held <= 600 || hand.peak <= SQ_MIN ? 'Стисни посилно и подолго!' : 'Полека…';
+  if (okSq) { lastSq = performance.now(); $('pHint').textContent = ''; SV.sq++; cur._n = (cur._n || 0) + 1; $('pCnt').textContent = cur._n;
     if (cur._n === 1 || Math.random() < .4) { if (cur.gold && Math.random() < .5) say('Golden!'); else if (hand.peak > .9 && Math.random() < .25) say(omg()); else cheer(); } if (SV.sq % PER_BOX === 0) { SV.boxes++; tone(660, 1320, .25, 'triangle', .2); } save(); }
 }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
@@ -932,7 +1035,7 @@ function play(v) {
   var r = RAR[v.rar]; $('play').style.setProperty('--rc', v.glow || r.c);
   $('pName').textContent = v.name; $('pSub').textContent = { gel: 'Гел · брзо се враќа', crunch: v.bar ? 'Crunchy · чоколадото пука' : 'Crunchy · крцка', taba: 'Taba силикон · slow-rise', plush: 'Плиш · меко и тивко' }[v.mat || 'taba'];
   var tg = $('pTag'); tg.textContent = r.n; tg.className = 'tag' + (v.rar === 'ooak' ? ' ooak' : ''); tg.style.setProperty('--rc', r.c);
-  $('pCnt').textContent = 0; $('play').classList.add('open'); sizeCanvas();
+  $('pCnt').textContent = 0; $('pHint').textContent = ''; $('play').classList.add('open'); sizeCanvas();
   if (!running) { running = true; lastT = 0; requestAnimationFrame(frame); }
 }
 $('back').addEventListener('click', function () { running = false; if (cur) cur._crack = 0; cur = null; if (nGain) nGain.gain.value = 0; $('play').classList.remove('open'); home(); });
@@ -1064,7 +1167,21 @@ $('useCode').addEventListener('click', function () {
 
 // ---------- Mystery box ----------
 var prizeV = null, taps = 0;
+// Снежна топка и Украсена елка: секоја може да ја добие само ЕДЕН корисник. Формулата тајно избира по еден код за влез (различен за двете),
+// и само тој корисник ја добива, со голема среќа: по најмалку 40 отворени кутии, 1% шанса по кутија, и само еднаш.
+var RARE1 = { globe: 'snow-globe-1', gtree: 'xmas-tree-1' }, RARE_MIN = 40, RARE_P = .01, RARE_WIN = null;
+function rareWinners() { if (RARE_WIN) return RARE_WIN; RARE_WIN = {}; var taken = [];
+  Object.keys(RARE1).forEach(function (id) { var best = null, bh = null;
+    CODES.forEach(function (c) { if (taken.indexOf(c) >= 0) return; var h = h53(c + RARE1[id]); if (bh === null || h < bh) { bh = h; best = c; } });
+    RARE_WIN[id] = best; taken.push(best); });
+  return RARE_WIN; }
+function rareRoll() {
+  var me = null, w = rareWinners(); try { me = localStorage.getItem('dvAccess'); } catch (e) {} me = me || sessHash; SV.won = SV.won || {};
+  for (var id in w) if (w[id] === me && !SV.won[id] && (SV.opens || 0) >= RARE_MIN && Math.random() < RARE_P) { SV.won[id] = 1; return byId(id); }
+  return null;
+}
 function roll() {
+  var rr = rareRoll(); if (rr) return rr;
   var x = Math.random() * 100, acc = 0, rar = 'common', w = odds();
   for (var i = 0; i < ORDER.length; i++) { acc += w[ORDER[i]]; if (x < acc) { rar = ORDER[i]; break; } }
   if (rar === 'ooak' && !SV.owned.tennis) return byId('tennis');   // првиот One of a Kind секогаш е тенискиот
@@ -1072,7 +1189,7 @@ function roll() {
   var pool = V.filter(function (v) { return v.rar === rar && !v.advent; }); return pool[Math.floor(Math.random() * pool.length)];
 }
 $('boxBtn').addEventListener('click', function () {
-  if (!SV.boxes) return; audio(); SV.boxes--; prizeV = roll(); taps = 0;
+  if (!SV.boxes) return; audio(); SV.boxes--; SV.opens = (SV.opens || 0) + 1; prizeV = roll(); taps = 0;
   var o = $('open'), r = RAR[prizeV.rar]; o.className = 'screen open'; o.style.setProperty('--rc', '#7a3cff');
   $('box').className = 'box' + (prizeV.pack ? ' ' + prizeV.pack : prizeV.season ? ' ' + prizeV.season : ''); $('prize').src = thumb(prizeV); $('tapHint').textContent = prizeV.pack === 'can' ? 'Допри ја тубата 3 пати' : prizeV.pack ? 'Допри ја вреќичката 3 пати' : 'Допри ја кошничката 3 пати';
   var isNew = !SV.owned[prizeV.id]; SV.owned[prizeV.id] = (SV.owned[prizeV.id] || 0) + 1; save();
@@ -1089,9 +1206,12 @@ $('box').addEventListener('click', function () {
   o.style.setProperty('--rc', r.c); o.classList.add('reveal');
   var gold = prizeV.rar === 'golden';
   if (prizeV.pack === 'can') burst(.55, 'highpass', 3600, .35);   // „пссст“ на вакуумска туба
+  if (prizeV.fx) specialFx(prizeV.fx);
   setTimeout(function () {
     if (gold) say('Golden! ' + omg());
     else if (prizeV.id === 'tennis') say('Ace! ' + omg());
+    else if (prizeV.id === 'globe') say('Let it snow! ' + omg());
+    else if (prizeV.id === 'gtree') say('Merry Christmas! ' + omg());
     else if (tier >= 3) say(Math.random() < .5 ? omg() : any(['So amazing!', 'Slaay!']));
     else if (tier >= 1) say(any(['Wow!', 'Sweet!', 'Amazing!']));
     else say('Cute!');
@@ -1136,7 +1256,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-1';
+var APP_VER = '2026-11-17-3';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
