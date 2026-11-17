@@ -163,24 +163,6 @@
   @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
   .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 80%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
   .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
-  .sea { position: relative; width: 300px; height: 220px; overflow: hidden; margin-bottom: 18px; }
-  .dolphin { position: absolute; width: 130px; left: -140px; top: 120px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
-  #intro.go .dolphin { animation: djump 2.6s cubic-bezier(.45,.05,.55,.95) forwards; }
-  @keyframes djump { 0% { left: -140px; top: 150px; transform: rotate(-35deg); } 50% { left: 85px; top: 10px; transform: rotate(0deg); } 100% { left: 320px; top: 160px; transform: rotate(40deg); } }
-  .wave { position: absolute; left: -40px; right: -40px; height: 70px; border-radius: 45%; }
-  .w1 { bottom: -38px; background: #2aa3e0; animation: wv 2.2s ease-in-out infinite alternate; }
-  .w2 { bottom: -50px; background: #1683c4; animation: wv 1.7s ease-in-out infinite alternate-reverse; }
-  @keyframes wv { to { transform: translateX(30px) translateY(6px); } }
-  .drop { position: absolute; width: 9px; height: 13px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #d6f1ff; opacity: 0; bottom: 30px; }
-  .d1 { left: 40px; } .d2 { left: 255px; } .d3 { left: 270px; }
-  #intro.go .d1 { animation: drp .8s .1s ease-out; } #intro.go .d2, #intro.go .d3 { animation: drp .8s 2.3s ease-out; } #intro.go .d3 { animation-delay: 2.4s; }
-  @keyframes drp { 0% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(var(--x, 14px), -60px); } }
-  .itxt { font-size: 32px; opacity: 0; transform: scale(.6); transition: .6s cubic-bezier(.2,1.6,.4,1); color: #fff; text-shadow: 0 3px 14px rgba(0,0,0,.35); }
-  .itxt2 { font-size: 26px; font-weight: 800; color: #9fe8ff; opacity: 0; transform: translateY(16px); transition: .6s .35s; margin-top: 6px; }
-  #intro.open .itxt, #intro.open .itxt2 { opacity: 1; transform: none; }
-  .ihint { margin-top: 26px; color: #d6f1ff; font-size: 15px; animation: blink 1.2s infinite; }
-  #intro.go .ihint { visibility: hidden; }
-  @keyframes blink { 50% { opacity: .3; } }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
 </head>
@@ -206,15 +188,6 @@
       <div class="stat"><span>Стисоци</span><b id="pCnt">0</b></div>
       <div class="stat"><span>Притисок</span><div class="bar sq"><i id="meter"></i></div><small id="pHint" class="phint"></small></div>
     </div>
-  </div>
-
-  <div class="screen" id="intro" style="z-index:70; justify-content:center; text-align:center; background:linear-gradient(#1b2a6b, #0b6fa8 55%, #0a3d6b)">
-    <div class="sea">
-      <svg class="dolphin" viewBox="0 0 120 60"><path d="M6 34 C18 16 48 8 74 14 C82 6 88 4 92 6 C88 10 86 14 88 18 C98 20 108 26 114 32 C108 34 102 33 98 32 C92 38 80 42 66 42 C62 48 54 52 48 50 C50 46 52 43 52 40 C36 40 22 40 10 44 C4 46 2 40 6 34 Z" fill="#9fd8ff"/><path d="M14 40 C30 36 54 36 74 36 C86 36 96 32 98 32 C90 40 76 44 60 44 C40 44 24 44 14 40 Z" fill="#e8f7ff"/><circle cx="96" cy="26" r="2.4" fill="#0b1f3a"/><path d="M110 31 C106 33 102 33 99 32" stroke="#0b1f3a" stroke-width="1.5" fill="none"/></svg>
-      <div class="wave w1"></div><div class="wave w2"></div><i class="drop d1"></i><i class="drop d2"></i><i class="drop d3"></i>
-    </div>
-    <h2 class="itxt">Владо Тасевски</h2><p class="itxt2">Делфини</p>
-    <p class="ihint" id="introHint">Допри 🔊</p>
   </div>
   <div class="screen" id="pause" style="--rc:#7a3cff; z-index:60; justify-content:center; text-align:center">
     <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
@@ -1286,7 +1259,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-5';
+var APP_VER = '2026-11-17-6';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1310,26 +1283,19 @@ function pauseCheck() {
   if (left > 0) { var m = Math.floor(left / 60000), sec = Math.floor(left / 1000) % 60;
     $('pauseT').textContent = m + ':' + ('0' + sec).slice(-2); el.classList.add('open');
     if (hand.down) up(); }
-  else { if (el.classList.contains('open')) el.classList.remove('open'); showIntro(); }
+  else if (el.classList.contains('open')) el.classList.remove('open');
 }
-// ---------- Еднократен воведен екран по паузата: „Владо Тасевски - Делфини“ ----------
-var INTRO_KEY = 'dvIntro-delfini', introOn = false;
-function showIntro() {
-  if (introOn) return; try { if (localStorage.getItem(INTRO_KEY)) return; } catch (e) { return; }
-  introOn = true; var el = $('intro'); el.classList.add('open');
-  el.addEventListener('pointerdown', function go() { el.removeEventListener('pointerdown', go); playIntro(); });
+// ---------- Звук при влегување: „It's squishy time!“ ----------
+// Телефоните не пуштаат звук пред прв допир, па се пушта на првиот допир по отворањето на апликацијата.
+var enterPlayed = false;
+function enterSound() {
+  if (enterPlayed) return; enterPlayed = true; audio();
+  [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .18, 'triangle', .14, k * .08); });   // брзо арпеџо нагоре
+  tone(300, 1500, .45, 'sine', .1, .35); click(2400, .3, .36); burst(.25, 'bandpass', 1800, .15, .42);   // „вжжуп“ + пукнување
+  [1047, 1319, 1568].forEach(function (f) { tone(f, f, .5, 'triangle', .08, .75); });
+  setTimeout(function () { say("It's squishy tiiiiime!"); }, 450);
 }
-function playIntro() {
-  var el = $('intro'); audio(); el.classList.add('go'); try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
-  // весела мелодија (~3 секунди) + плискање вода кога делфинот скока и паѓа
-  var n = [784, 659, 784, 1047, 988, 784, 659, 587, 523, 659, 784, 1047];
-  n.forEach(function (f, k) { tone(f, f, .22, 'triangle', .16, k * .17); tone(f / 2, f / 2, .18, 'sine', .07, k * .17); });
-  [523, 659, 784, 1047].forEach(function (f) { tone(f, f, .9, 'triangle', .09, 2.05); });
-  [262, 196, 220, 262].forEach(function (f, k) { tone(f / 2, f / 2, .35, 'sine', .14, k * .51); });
-  burst(.45, 'lowpass', 900, .35, .05); burst(.5, 'lowpass', 800, .4, 2.3); tone(500, 1400, .35, 'sine', .08, 1.1);
-  setTimeout(function () { say('Vlado Tasevski! Delfini!'); }, 700);
-  setTimeout(function () { el.classList.remove('open', 'go'); }, 3600);
-}
+document.addEventListener('pointerdown', enterSound, { once: true, capture: true });
 pauseCheck(); setInterval(pauseCheck, 1000);
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') checkVersion(); });
 window.addEventListener('pageshow', function (e) { if (e.persisted) { verChecked = 0; checkVersion(); } });
