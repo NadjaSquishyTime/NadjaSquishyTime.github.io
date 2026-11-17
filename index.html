@@ -190,6 +190,10 @@
     </div>
   </div>
 
+  <div class="screen" id="pause" style="--rc:#7a3cff; z-index:60; justify-content:center; text-align:center">
+    <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
+    <b id="pauseT" style="font-size:44px; letter-spacing:2px; margin-top:12px">30:00</b>
+  </div>
   <div class="screen open" id="lock" style="--rc:#7a3cff; z-index:50; justify-content:center">
     <h1 style="position:relative">Dumpling <span>Vault</span></h1>
     <p class="sub" style="margin:10px 0 22px">Внеси го твојот личен код за влез</p>
@@ -1256,7 +1260,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-3';
+var APP_VER = '2026-11-17-4';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1270,6 +1274,19 @@ function checkVersion() {   // ако на серверот има понова 
   }).catch(function () {});
 }
 checkVersion();
+setInterval(checkVersion, 60000);   // и отворените апликации на секоја минута проверуваат за нова верзија
+
+// ---------- Пауза ----------
+// До ова време (UTC) апликацијата е на пауза за сите; после тоа сама продолжува да работи.
+var PAUSE_UNTIL = '2026-11-17T10:56:22Z';
+function pauseCheck() {
+  var left = new Date(PAUSE_UNTIL).getTime() - Date.now(), el = $('pause');
+  if (left > 0) { var m = Math.floor(left / 60000), sec = Math.floor(left / 1000) % 60;
+    $('pauseT').textContent = m + ':' + ('0' + sec).slice(-2); el.classList.add('open');
+    if (hand.down) up(); }
+  else if (el.classList.contains('open')) el.classList.remove('open');
+}
+pauseCheck(); setInterval(pauseCheck, 1000);
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') checkVersion(); });
 window.addEventListener('pageshow', function (e) { if (e.persisted) { verChecked = 0; checkVersion(); } });
 
