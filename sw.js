@@ -1,6 +1,6 @@
 // Ја чува апликацијата на уредот за да работи и без интернет.
 // Кога се објавува нова верзија, смени го бројот подолу за корисниците да ја добијат.
-var CACHE = 'dumpling-vault-v23';
+var CACHE = 'dumpling-vault-v24';
 var FILES = ['./', './index.html', './manifest.json', './icon.svg', './zvuci/omg.m4a'];
 
 self.addEventListener('install', function (e) {

@@ -1353,7 +1353,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-18';
+var APP_VER = '2026-11-17-19';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1372,7 +1372,8 @@ checkVersion();
 // to = отпечаток на кодот; times = колку пати се покажува по ред; sec = колку секунди трае секој пат.
 var MESSAGES = [
   { id: 'warn-1', to: 'ba3a575a3084439b', text: 'Доколку претераш со играње, само твојата апликација нема да се отвара, сите други ќе играат!', times: 3, sec: 3 },
-  { id: 'marina-1', to: '45431caa3f66821a', text: 'Марина не лупај! 🤫', times: 1, sec: 4, blink: 1 }   // ELTM-TL8N
+  { id: 'marina-1', to: '45431caa3f66821a', text: 'Марина не лупај! 🤫', times: 1, sec: 4, blink: 1 },   // ELTM-TL8N
+  { id: 'gift-eltm-10', to: '45431caa3f66821a', text: 'Подарок! 🎁 Доби 10 Mystery Box!', times: 1, sec: 4, boxes: 10 }   // ELTM-TL8N
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
 var USERS = { 'ba3a575a3084439b': 'Надја', '069496a50bd67643': 'Деа', '1d8fc03c473b151f': 'Вики', '695b7c56abad8d0b': 'Ева', '4718fd86bdf2128c': 'Лина', '2ffd094112a5d859': 'Вера' };
@@ -1398,7 +1399,7 @@ function checkMessages() {
   if (msgBusy || $('umsg').classList.contains('greet') || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
   var me = myHash(); SV.msgs = SV.msgs || {};
   for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.to !== me || SV.msgs[m.id]) continue;
-    msgBusy = true; SV.msgs[m.id] = 1; save(); var el = $('umsg'), n = 0; $('umsgT').textContent = m.text; el.classList.toggle('blink', !!m.blink);
+    msgBusy = true; SV.msgs[m.id] = 1; if (m.boxes) { SV.boxes += m.boxes; if (typeof home === 'function' && !document.querySelector('.screen.open')) home(); } save(); var el = $('umsg'), n = 0; $('umsgT').textContent = m.text; el.classList.toggle('blink', !!m.blink);
     (function show() { el.classList.add('on'); tone(880, 880, .15, 'triangle', .12); tone(660, 660, .2, 'triangle', .12, .15); if (navigator.vibrate) navigator.vibrate(60);
       setTimeout(function () { el.classList.remove('on'); n++; if (n < m.times) setTimeout(show, 700); else { msgBusy = false; setTimeout(function () { el.classList.remove('blink'); }, 400); } }, m.sec * 1000); })();
     return; }
