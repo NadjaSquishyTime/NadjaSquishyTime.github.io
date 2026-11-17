@@ -163,10 +163,11 @@
   @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
   .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 62%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
   .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
-  .usage { margin: -4px 0 10px; font-size: 12.5px; color: #a9a3c2; } .usage b { color: #fff; }
+  .usage { margin: 0 0 10px; padding: 0 18px; font-size: 12.5px; line-height: 1.5; color: #a9a3c2; } .usage b { color: #fff; }
   .umsg { position: fixed; left: 16px; right: 16px; top: 40%; z-index: 80; padding: 22px 18px; border-radius: 18px; background: linear-gradient(135deg, #ff5d7a, #7a3cff); color: #fff;
     font-size: 19px; font-weight: 800; text-align: center; line-height: 1.35; box-shadow: 0 12px 40px rgba(0,0,0,.5); opacity: 0; transform: scale(.85); pointer-events: none; transition: .3s; }
   .umsg.on { opacity: 1; transform: none; }
+  .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
 </head>
@@ -1305,7 +1306,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-15';
+var APP_VER = '2026-11-17-16';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1329,10 +1330,24 @@ var MESSAGES = [
 var USERS = { 'ba3a575a3084439b': 'Надја', '069496a50bd67643': 'Деа', '1d8fc03c473b151f': 'Вики', '695b7c56abad8d0b': 'Ева', '4718fd86bdf2128c': 'Лина', '2ffd094112a5d859': 'Вера' };
 function myName() { return USERS[myHash()] || ''; }
 function statId() { var me = myHash(), id = me ? me.slice(0, 6).toUpperCase() : ''; return myName() ? id + ' · ' + myName() : id; }
+// Личен поздрав при влегување: [текст на екранот, што кажува гласот (англиски глас, затоа е напишано по изговор)]
+var GREET = {
+  'ba3a575a3084439b': ['Здраво Надја, tennis queen! 🎾👑', 'Zdravo Nahdya, tennis queen!'],
+  '069496a50bd67643': ['Здраво Деа смеа! 😂', 'Zdravo Deh-ah, smeh-ah!'],
+  '1d8fc03c473b151f': ['Вики! Вики! Вики! 🎉', 'Veekee! Veekee! Veekee!'],
+  'c6267e36b14de7e5': ['Hello there! 👋', 'Hello there!']
+};
+var greeted = false;
+function showGreeting() {   // еднаш по отворање, откако е внесен кодот
+  var g = GREET[myHash()]; if (greeted || !g || msgBusy || $('lock').classList.contains('open') || $('pause').classList.contains('open')) return;
+  greeted = true; var el = $('umsg'); $('umsgT').textContent = g[0]; el.classList.add('on', 'greet');
+  setTimeout(function () { el.classList.remove('on'); setTimeout(function () { el.classList.remove('greet'); }, 400); }, 3200);
+}
+setTimeout(showGreeting, 700); setInterval(showGreeting, 1500);
 function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
 var msgBusy = false;
 function checkMessages() {
-  if (msgBusy || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
+  if (msgBusy || $('umsg').classList.contains('greet') || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
   var me = myHash(); SV.msgs = SV.msgs || {};
   for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.to !== me || SV.msgs[m.id]) continue;
     msgBusy = true; SV.msgs[m.id] = 1; save(); var el = $('umsg'), n = 0; $('umsgT').textContent = m.text;
@@ -1399,6 +1414,7 @@ function enterSound() {
   tone(300, 1500, .45, 'sine', .1, .35); click(2400, .3, .36); burst(.25, 'bandpass', 1800, .15, .42);   // „вжжуп“ + пукнување
   [1047, 1319, 1568].forEach(function (f) { tone(f, f, .5, 'triangle', .08, .75); });
   setTimeout(function () { say("It's squishy tiiiiime!"); }, 450);
+  var gr = GREET[myHash()]; if (gr) setTimeout(function () { say(gr[1]); }, 2300);   // личен поздрав по „squishy time“
 }
 document.addEventListener('pointerdown', enterSound, { once: true, capture: true });
 pauseCheck(); setInterval(pauseCheck, 1000);
