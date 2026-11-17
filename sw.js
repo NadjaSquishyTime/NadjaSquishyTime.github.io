@@ -1,7 +1,7 @@
 // Ја чува апликацијата на уредот за да работи и без интернет.
 // Кога се објавува нова верзија, смени го бројот подолу за корисниците да ја добијат.
-var CACHE = 'dumpling-vault-v14';
-var FILES = ['./', './index.html', './manifest.json', './icon.svg'];
+var CACHE = 'dumpling-vault-v16';
+var FILES = ['./', './index.html', './manifest.json', './icon.svg', './zvuci/omg.m4a'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES.map(function (f) { return new Request(f, { cache: 'reload' }); })); }).then(function () { return self.skipWaiting(); }));
