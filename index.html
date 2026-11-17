@@ -346,6 +346,18 @@ function uniqueVariant(u) {
 }
 
 // ---------- Зачувување ----------
+// Пренос од стариот линк: страницата на стариот линк праќа овде „#mig=…“ со колекцијата и кодот за влез.
+(function () {
+  var m = location.hash.match(/^#mig=([A-Za-z0-9_-]+)/); if (!m) return;
+  try {
+    var d = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+    var size = function (v) { var n = 0; if (v && v.owned) for (var k in v.owned) n += v.owned[k]; return n + (v && v.sq || 0) / 1000; };
+    var mine = null; try { mine = JSON.parse(localStorage.getItem('dumplingVault1')); } catch (e) {}
+    if (d.sv && size(d.sv) >= size(mine)) localStorage.setItem('dumplingVault1', JSON.stringify(d.sv));   // ја задржува поголемата колекција
+    if (d.acc && !localStorage.getItem('dvAccess')) localStorage.setItem('dvAccess', d.acc);
+  } catch (e) {}
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+})();
 var SV = { boxes: 3, sq: 0, owned: {}, uniq: [] };
 try { var j = JSON.parse(localStorage.getItem('dumplingVault1')); if (j) SV = j; } catch (e) {}
 function save() { try { localStorage.setItem('dumplingVault1', JSON.stringify(SV)); } catch (e) {} }
@@ -1259,7 +1271,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-6';
+var APP_VER = '2026-11-17-7';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
