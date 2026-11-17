@@ -161,7 +161,7 @@
   @keyframes snowfall { 8% { opacity: 1; } 100% { transform: translate(40px, 105vh) rotate(360deg); opacity: .9; } }
   .fxbulb { position: absolute; top: -20px; width: 11px; height: 16px; border-radius: 50% 50% 45% 45%; background: var(--c); box-shadow: 0 0 14px 4px var(--c); pointer-events: none; z-index: 6; animation: bulbfall ease-in forwards; opacity: 0; }
   @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
-  .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 80%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
+  .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 62%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
   .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -915,18 +915,21 @@ function click(freq, vol, delay) {
 }
 // ---------- Глас: кратки реплики ----------
 // Имиња: Надја, Деа, Вики, Ева. Напишани се по изговор, за англискиот глас на уредот да ги каже како на македонски.
-var NAMES = ['Nahdya', 'Deh-ah', 'Veekee', 'Eh-vah'],CHEERS = ['Cute!', 'Sweet!', 'Squish squish!', 'Wow!', 'A S M R!', 'Slaay!', 'Amazing!', 'Squish!', 'So amazing!'], voice = null;
+var NAMES = ['Nahdya', 'Deh-ah', 'Veekee', 'Eh-vah'],CHEERS = ['Wow, this is wonderful!', 'Damn girl!', 'Damn boy!', 'This app rocks!', 'Ouch!', 'This is almost sticky!', 'Slaaaaay!', 'Apateu, apateu!'], voice = null, voice2 = null;
 function pickVoice() {
   if (!window.speechSynthesis) return; var vs = speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
   voice = vs.filter(function (v) { return /female|zira|samantha|aria|jenny|google us|karen|moira|tessa/i.test(v.name); })[0] || vs[0] || null;
+  // втор глас за фразите при стискање: друг англиски глас (по можност машки или британски)
+  voice2 = vs.filter(function (v) { return v !== voice && /male|david|daniel|alex|fred|guy|mark|ryan|google uk|arthur|aaron|rishi/i.test(v.name) && !/female/i.test(v.name); })[0] || vs.filter(function (v) { return v !== voice; })[0] || null;
 }
 if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function say(text) {
+function say(text, other) {   // other = вториот глас
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; if (voice) u.voice = voice; u.pitch = 1.8; u.rate = 1.05; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
+  try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text), v2 = other && voice2; u.lang = 'en-US'; if (v2) u.voice = voice2; else if (voice) u.voice = voice;
+    u.pitch = other ? (v2 ? 1.15 : .6) : 1.8; u.rate = other ? 1.12 : 1.05; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else say(any(CHEERS)); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else say(any(CHEERS), true); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
 function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
   var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -1003,7 +1006,7 @@ function frame(now) {
   if (!running) return;
   var dt = lastT ? Math.min((now - lastT) / 1000, .04) : .016; lastT = now;
   var tq = 0;
-  if (hand.down) tq = clamp(Math.min((now - hand.t0) / 1000, 1) * .9 + (hand.y - hand.y0) / 200, .12, 1);   // притисокот расте побавно: треба да се држи
+  if (hand.down) tq = clamp(Math.min((now - hand.t0) / 700, 1) * .85 + (hand.y - hand.y0) / 190, .12, 1);   // притисокот расте со држење
   hand.h += ((hand.down ? 1 : 0) - hand.h) * (hand.down ? .28 : .16);
   hand.q += (tq - hand.q) * (hand.down ? .22 : .3);
   hand.x += (hand.tx - hand.x) * .2; hand.peak = Math.max(hand.peak, hand.q);
@@ -1030,7 +1033,7 @@ cv.addEventListener('pointerdown', function (e) {
   tone(150, 80, .14, 'sine', .22); if (navigator.vibrate) navigator.vibrate(12);
 });
 cv.addEventListener('pointermove', function (e) { if (hand.down) { var p = cvPos(e); hand.y = p.y; hand.tx = clamp(p.x, CX - 62, CX + 50); } });
-var SQ_MIN = .8, lastSq = 0;   // стисокот се брои само над оваа линија на притисок
+var SQ_MIN = .62, lastSq = 0;   // стисокот се брои само над оваа линија на притисок
 function up() {
   if (!hand.down) return; hand.down = false;
   tone(170, 560, .08, 'sine', .22); click(900, .25, .04); if (navigator.vibrate) navigator.vibrate(20);
@@ -1038,8 +1041,8 @@ function up() {
   if (hand.peak > .45 && cur.sfx === 'globe') { var sc = [784, 988, 1175, 1319, 1568]; melody([any(sc), any(sc), any(sc)], .14); burst(.6, 'highpass', 6000, .05); }
   if (hand.peak > .45 && cur.sfx === 'jingle') jingle(9);
   if (hand.peak > .45 && cur.sfx === 'tennis') { tone(540, 180, .07, 'triangle', .45); click(2300, .4); }
-  var held = performance.now() - hand.t0, okSq = hand.peak > SQ_MIN && held > 600 && performance.now() - lastSq > 900;   // заштита од брзо спамирање
-  if (held > 150 && !okSq) $('pHint').textContent = held <= 600 || hand.peak <= SQ_MIN ? 'Стисни посилно и подолго!' : 'Полека…';
+  var held = performance.now() - hand.t0, okSq = hand.peak > SQ_MIN && held > 380 && performance.now() - lastSq > 600;   // заштита од брзо спамирање
+  if (held > 150 && !okSq) $('pHint').textContent = held <= 380 || hand.peak <= SQ_MIN ? 'Стисни посилно и подолго!' : 'Полека…';
   if (okSq) { lastSq = performance.now(); $('pHint').textContent = ''; SV.sq++; cur._n = (cur._n || 0) + 1; $('pCnt').textContent = cur._n;
     if (cur._n === 1 || Math.random() < .4) { if (cur.gold && Math.random() < .5) say('Golden!'); else if (hand.peak > .9 && Math.random() < .25) say(omg()); else cheer(); } if (SV.sq % PER_BOX === 0) { SV.boxes++; tone(660, 1320, .25, 'triangle', .2); } save(); }
 }
@@ -1271,7 +1274,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-7';
+var APP_VER = '2026-11-17-8';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
