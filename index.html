@@ -163,12 +163,17 @@
   @keyframes bulbfall { 10% { opacity: 1; } 30%, 50%, 70% { opacity: .35; } 40%, 60%, 80% { opacity: 1; } 100% { transform: translateY(105vh) rotate(200deg); opacity: 1; } }
   .bar.sq { position: relative; } .bar.sq::after { content: ""; position: absolute; left: 62%; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; box-shadow: 0 0 6px #fff; }
   .phint { display: block; min-height: 14px; margin-top: 4px; font-size: 11px; color: #ffd166; }
+  .usage { margin: -4px 0 10px; font-size: 12.5px; color: #a9a3c2; } .usage b { color: #fff; }
+  .umsg { position: fixed; left: 16px; right: 16px; top: 40%; z-index: 80; padding: 22px 18px; border-radius: 18px; background: linear-gradient(135deg, #ff5d7a, #7a3cff); color: #fff;
+    font-size: 19px; font-weight: 800; text-align: center; line-height: 1.35; box-shadow: 0 12px 40px rgba(0,0,0,.5); opacity: 0; transform: scale(.85); pointer-events: none; transition: .3s; }
+  .umsg.on { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
 </head>
 <body>
 <div class="app">
   <header><h1>Dumpling <span>Vault</span></h1><div class="own">Собрани <b id="ownN">0</b></div></header>
+    <div class="usage" id="usage"></div>
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
@@ -189,6 +194,7 @@
       <div class="stat"><span>Притисок</span><div class="bar sq"><i id="meter"></i></div><small id="pHint" class="phint"></small></div>
     </div>
   </div>
+  <div class="umsg" id="umsg"><div id="umsgT"></div></div>
   <div class="screen" id="pause" style="--rc:#7a3cff; z-index:60; justify-content:center; text-align:center">
     <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
     <b id="pauseT" style="font-size:44px; letter-spacing:2px; margin-top:12px">30:00</b>
@@ -899,7 +905,25 @@ function audio() {
     var n = ac.sampleRate * 2, buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     var src = ac.createBufferSource(); src.buffer = buf; src.loop = true; nFilt = ac.createBiquadFilter(); nFilt.type = 'bandpass'; nFilt.Q.value = 1.4;
     nGain = ac.createGain(); nGain.gain.value = 0; src.connect(nFilt); nFilt.connect(nGain); nGain.connect(ac.destination); src.start(); }
-  if (ac.state === 'suspended') ac.resume(); return ac;
+  if (ac.state !== 'running') { try { ac.resume(); } catch (e) {} }   // iOS: 'suspended' или 'interrupted' (по повик, по враќање во апликацијата)
+  loadClips(); return ac;
+}
+// iOS: звукот да се слуша и кога телефонот е на тивко (Safari 17+)
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+document.addEventListener('pointerdown', function () { if (ac) audio(); }, true);   // секој допир го „буди“ звукот ако заспал
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ac) audio(); });
+// ---------- Снимени гласови (zvuci/) ----------
+var CLIPS = { omg: 'zvuci/omg.m4a' }, clipBuf = {}, clipsLoading = false;
+function loadClips() {
+  if (clipsLoading || !ac || !window.fetch) return; clipsLoading = true;
+  Object.keys(CLIPS).forEach(function (k) {
+    fetch(CLIPS[k]).then(function (r) { return r.arrayBuffer(); }).then(function (b) {
+      return new Promise(function (ok, no) { ac.decodeAudioData(b, ok, no); }); }).then(function (buf) { clipBuf[k] = buf; }).catch(function () {});
+  });
+}
+function playClip(k, delay) {
+  if (!ac || !clipBuf[k]) return false; var s = ac.createBufferSource(), g = ac.createGain(); s.buffer = clipBuf[k]; g.gain.value = 1;
+  s.connect(g); g.connect(ac.destination); s.start(ac.currentTime + (delay || 0)); return true;
 }
 function tone(f1, f2, dur, type, vol, delay) {
   var c = audio(); if (!c) return; var t = c.currentTime + (delay || 0), o = c.createOscillator(), g = c.createGain();
@@ -915,21 +939,25 @@ function click(freq, vol, delay) {
 }
 // ---------- Глас: кратки реплики ----------
 // Имиња: Надја, Деа, Вики, Ева. Напишани се по изговор, за англискиот глас на уредот да ги каже како на македонски.
-var NAMES = ['Nahdya', 'Deh-ah', 'Veekee', 'Eh-vah'],CHEERS = ['Wow, this is wonderful!', 'Damn girl!', 'Damn boy!', 'This app rocks!', 'Ouch!', 'This is almost sticky!', 'Slaaaaay!', 'A, P, T, P, T!'], voice = null, voice2 = null;
+var NAMES = ['Nahdya', 'Deh-ah', 'Veekee', 'Eh-vah'],CHEERS = ['Wow, this is wonderful!', 'Damn girl!', 'Damn boy!', 'This app rocks!', 'Ouch!', 'This is almost sticky!', 'Slaaaaay!', 'A, P, T, P, T!'], voice = null;
 function pickVoice() {
   if (!window.speechSynthesis) return; var vs = speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
   voice = vs.filter(function (v) { return /female|zira|samantha|aria|jenny|google us|karen|moira|tessa/i.test(v.name); })[0] || vs[0] || null;
-  // втор глас за фразите при стискање: друг англиски глас (по можност машки или британски)
-  voice2 = vs.filter(function (v) { return v !== voice && /male|david|daniel|alex|fred|guy|mark|ryan|google uk|arthur|aaron|rishi/i.test(v.name) && !/female/i.test(v.name); })[0] || vs.filter(function (v) { return v !== voice; })[0] || null;
 }
 if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function say(text, other) {   // other = вториот глас
+function speak(text) {
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text), v2 = other && voice2; u.lang = 'en-US'; if (v2) u.voice = voice2; else if (voice) u.voice = voice;
-    u.pitch = other ? (v2 ? 1.15 : .6) : 1.8; u.rate = other ? 1.12 : 1.05; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
+  try { var go = function () { var u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; if (voice) u.voice = voice; u.pitch = 1.8; u.rate = 1.05; u.volume = 1; speechSynthesis.speak(u); };
+    if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 60); } else go();   // по cancel() веднаш speak() понекогаш се губи
+  } catch (e) {}
+}
+function say(text) {   // „O M G, …“ се пушта од снимката (ако е вчитана); останатото го кажува гласот на телефонот
+  var i = text.indexOf('O M G');
+  if (i >= 0 && clipBuf.omg) { var pre = text.slice(0, i).trim(); if (pre) { speak(pre); playClip('omg', .85); } else playClip('omg', 0); return; }
+  speak(text);
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else say(any(CHEERS), true); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else say(any(CHEERS)); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
 function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
   var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -944,7 +972,9 @@ function liveSound(speed, squeeze, deform, mat) {
   var vol = clamp(speed * base, 0, .4) + (hand.down ? 0 : clamp(deform * .5, 0, .07));
   nGain.gain.setTargetAtTime(vol, t, .04);
   nFilt.frequency.setTargetAtTime((mat === 'gel' ? 380 : 620) + squeeze * 1500, t, .05);
-  if (mat === 'crunch' && Math.random() < speed * .9) click(1500 + Math.random() * 3200, .28);
+  if (mat === 'crunch') { var cr = clamp(speed * 1.1 + (hand.down ? .06 + squeeze * .22 : 0), 0, .95);   // крцкање: и додека држиш
+    if (Math.random() < cr) click(1400 + Math.random() * 3600, .22 + Math.random() * .16);
+    if (Math.random() < cr * .35) click(2600 + Math.random() * 2600, .18, .012 + Math.random() * .02); }
   if (mat !== 'crunch' && mat !== 'plush' && Math.random() < speed * .22) click(500 + Math.random() * 700, .16);
 }
 
@@ -1060,6 +1090,7 @@ $('back').addEventListener('click', function () { running = false; if (cur) cur.
 
 // ---------- Почетен екран ----------
 function home() {
+  showUsage();
   grantBonus(); renderOdds();
   var all = allVariants(), own = 0, grid = $('grid'); grid.innerHTML = '';
   all.sort(function (a, b) { return ORDER.indexOf(a.rar) - ORDER.indexOf(b.rar); });
@@ -1274,7 +1305,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-17-9';
+var APP_VER = '2026-11-17-11';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1288,6 +1319,47 @@ function checkVersion() {   // ако на серверот има понова 
   }).catch(function () {});
 }
 checkVersion();
+
+// ---------- Пораки до одреден корисник (по код за влез) ----------
+// to = отпечаток на кодот; times = колку пати се покажува по ред; sec = колку секунди трае секој пат.
+var MESSAGES = [
+  { id: 'warn-1', to: 'ba3a575a3084439b', text: 'Доколку претераш со играње, само твојата апликација нема да се отвара, сите други ќе играат!', times: 3, sec: 3 }
+];
+function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
+var msgBusy = false;
+function checkMessages() {
+  if (msgBusy || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
+  var me = myHash(); SV.msgs = SV.msgs || {};
+  for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.to !== me || SV.msgs[m.id]) continue;
+    msgBusy = true; SV.msgs[m.id] = 1; save(); var el = $('umsg'), n = 0; $('umsgT').textContent = m.text;
+    (function show() { el.classList.add('on'); tone(880, 880, .15, 'triangle', .12); tone(660, 660, .2, 'triangle', .12, .15); if (navigator.vibrate) navigator.vibrate(60);
+      setTimeout(function () { el.classList.remove('on'); n++; if (n < m.times) setTimeout(show, 700); else msgBusy = false; }, m.sec * 1000); })();
+    return; }
+}
+setInterval(checkMessages, 2000);
+
+// ---------- Време на користење ----------
+// Се брои само додека апликацијата е отворена и видлива на екранот (и не е на пауза / заклучена).
+function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function fmtTime(sec) { var h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60; return h ? h + ' ч ' + m + ' мин' : m ? m + ' мин' : Math.floor(sec) + ' сек'; }
+function showUsage() { var a = SV.act || { total: 0, days: {} }; $('usage').innerHTML = '⏱ Активно време: денес <b>' + fmtTime(a.days[today()] || 0) + '</b> · вкупно <b>' + fmtTime(a.total) + '</b>'; }
+var actTick = 0;
+setInterval(function () {
+  if (document.visibilityState !== 'visible' || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
+  SV.act = SV.act || { total: 0, days: {} }; var d = today(); SV.act.total++; SV.act.days[d] = (SV.act.days[d] || 0) + 1;
+  if (++actTick % 10 === 0) save(); if (actTick % 300 === 0) sendStats();
+  if (actTick % 5 === 0) showUsage();
+}, 1000);
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { save(); sendStats(); } });
+
+// ---------- Статистика за сопственикот ----------
+// Секој корисник праќа: ID (првите 6 знаци од отпечатокот на кодот), датум, време денес и вкупно, бројот на стисоци и колекцијата.
+// STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
+var STATS_URL = '';
+function sendStats() {
+  if (!STATS_URL || !navigator.sendBeacon) return; var me = myHash(); if (!me) return; var a = SV.act || { total: 0, days: {} }, n = 0; for (var k in SV.owned) n += SV.owned[k];
+  try { navigator.sendBeacon(STATS_URL, JSON.stringify({ id: me.slice(0, 6).toUpperCase(), day: today(), today: a.days[today()] || 0, total: a.total, squeezes: SV.sq || 0, owned: n, opens: SV.opens || 0 })); } catch (e) {}
+}
 setInterval(checkVersion, 60000);   // и отворените апликации на секоја минута проверуваат за нова верзија
 
 // ---------- Пауза ----------
