@@ -377,7 +377,7 @@ function barShape() {   // сладолед на стапче: заоблен п
 var SHAPES = { dome: restShape(), bear: bearShape(), ball: ballShape(), bar: barShape() }, REST = SHAPES.dome, SH = { top: RYT, bot: RYB, gap: 40 }, BB = { x0: 80, x1: 320, y0: 140, y1: 300 };
 function useShape(v) { var s = v.shape || 'dome'; REST = SHAPES[s]; A0 = area(REST);
   BB = { x0: 1e9, x1: -1e9, y0: 1e9, y1: -1e9 }; REST.forEach(function (p) { BB.x0 = Math.min(BB.x0, p.x); BB.x1 = Math.max(BB.x1, p.x); BB.y0 = Math.min(BB.y0, p.y); BB.y1 = Math.max(BB.y1, p.y); });
-  SH = s === 'bear' ? { top: 134, bot: 136, gap: 130 } : s === 'ball' ? { top: 108, bot: 108, gap: 78 } : SHP[s] ? boundsSH(REST) : { top: RYT, bot: RYB, gap: 40 }; }
+  SH = s === 'bear' ? { top: 134, bot: 136, gap: 130 } : s === 'ball' ? { top: 108, bot: 108, gap: 78 } : SHP[s] || s === 'bar' ? boundsSH(REST) : { top: RYT, bot: RYB, gap: 40 }; }
 
 // ---------- Нови форми (храна, овошје, животни) ----------
 function boundsSH(p) { var t = 0, b = 0; p.forEach(function (q) { t = Math.max(t, CY - q.y); b = Math.max(b, q.y - CY); }); return { top: t, bot: b, gap: Math.max(44, (t + b) * .42) }; }
@@ -856,65 +856,25 @@ function step(fingers, ks, damp) {
       for (i = 0; i < N; i++) { var ex = P[i].x - F.x, ey = P[i].y - F.y, dd = Math.sqrt(ex * ex + ey * ey); if (dd < F.r && dd > .01) { P[i].x = F.x + ex / dd * F.r; P[i].y = F.y + ey / dd * F.r; } } }
   }
 }
-// ---------- Рака: squishy-то е во дланката, прстите се стегаат во тупаница ----------
-function handPose() {
-  var q = hand.q, w = BB.x1 - BB.x0, hgt = BB.y1 - BB.y0, drop = (1 - hand.h) * 320;
-  var r = clamp(Math.sqrt(w * hgt) * .1, 17, 25), gap = r * 1.9, yc = BB.y0 + hgt * .54 + drop;
-  var inR = 6 + q * w * .27, inL = 4 + q * w * .2;   // колку навлегуваат прстите (десно) и дланката (лево)
-  var rows = [0, 1, 2, 3].map(function (k) { return yc + (k - 1.5) * gap + (k - 1.5) * (k - 1.5) * 1.5; });
-  var R = 44, walls = [];
-  rows.forEach(function (y, k) { walls.push({ x: BB.x1 + R - inR - (k === 0 || k === 3 ? 0 : 4), y: y, r: R }, { x: BB.x0 - R + inL, y: y, r: R }); });
-  return { q: q, w: w, r: r, rows: rows, walls: walls, kn: BB.x1 - inR + r * .5, pl: BB.x0 + inL, yc: yc, gap: gap, drop: drop };
+function fingerList() {
+  var q = hand.q, off = (1 - hand.h) * 300, x = hand.x + off;
+  var hg = SH.gap / 2, yT = (CY - SH.top - 46) + q * (SH.top + 46 - hg - 24), yB = (CY + SH.bot + 52) - q * (SH.bot + 52 - hg - 28);
+  return [{ x: x - 20, y: yT + 3, r: 24, top: 1, ang: -.22 }, { x: x + 30, y: yT - 3, r: 23, top: 1, ang: -.3 }, { x: x + 4, y: yB, r: 28, top: 0, ang: .34 }];
 }
-var SKIN = ['#fbdcc8', '#f2c3a6', '#d99f80'];
-function skinStroke(g, x1, y1, x2, y2, r) {
-  var ang = Math.atan2(y2 - y1, x2 - x1), nx = -Math.sin(ang), ny = Math.cos(ang);
-  g.lineCap = 'round'; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.strokeStyle = '#b97f62'; g.lineWidth = r * 2 + 3; g.stroke();
-  var lg = g.createLinearGradient(x1 - nx * r, y1 - ny * r, x1 + nx * r, y1 + ny * r); lg.addColorStop(0, SKIN[0]); lg.addColorStop(.55, SKIN[1]); lg.addColorStop(1, SKIN[2]);
-  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.strokeStyle = lg; g.lineWidth = r * 2; g.stroke();
-}
-function crease(g, x, y, r, ang) { g.save(); g.translate(x, y); g.rotate(ang); g.strokeStyle = 'rgba(140,85,60,.35)'; g.lineWidth = 1.8; g.lineCap = 'round';
-  g.beginPath(); g.moveTo(0, -r * .7); g.quadraticCurveTo(r * .18, 0, 0, r * .7); g.stroke(); g.restore(); }
-function drawHandBack(g, H) {   // дланка и зглоб зад squishy-то
-  var top = H.rows[0] - H.r * 1.6, bot = H.rows[3] + H.r * 2.4;
-  skinStroke(g, H.pl + 20, bot - 10, -40, H.drop + 560, 62);   // зглоб кон долниот лев агол
-  var pg = g.createLinearGradient(H.pl - 40, 0, H.kn, 0); pg.addColorStop(0, SKIN[1]); pg.addColorStop(1, SKIN[2]);
-  g.fillStyle = '#b97f62'; g.beginPath(); g.roundRect(H.pl - 42, top - 2, H.kn - H.pl + 44, bot - top + 4, 46); g.fill();
-  g.fillStyle = pg; g.beginPath(); g.roundRect(H.pl - 40, top, H.kn - H.pl + 40, bot - top, 44); g.fill();
-}
-function drawHandFront(g, H) {   // прсти завиткани одпред + палец
-  var r = H.r, q = H.q;
-  // надворешната страна на дланката (десно, кај зглобовите)
-  var kx = H.kn, top = H.rows[0] - r, bot = H.rows[3] + r;
-  g.fillStyle = '#b97f62'; g.beginPath(); g.ellipse(kx + 22, (top + bot) / 2 + 6, 44, (bot - top) / 2 + 12, -.12, 0, 6.3); g.fill();
-  var bg = g.createLinearGradient(kx - 10, 0, kx + 60, 0); bg.addColorStop(0, SKIN[0]); bg.addColorStop(.5, SKIN[1]); bg.addColorStop(1, SKIN[2]);
-  g.fillStyle = bg; g.beginPath(); g.ellipse(kx + 22, (top + bot) / 2 + 6, 42, (bot - top) / 2 + 10, -.12, 0, 6.3); g.fill();
-  // четири прсти: од зглобот лево преку предната страна, врвовите се забиваат во squishy-то
-  H.rows.forEach(function (y, k) {
-    var rr = r * (k === 3 ? .86 : k === 0 ? .96 : 1), len = H.w * (.74 - k * .06) * (1 - q * .22), tip = kx - len, mid = kx - len * .55, sag = 3 + k * 2 + q * 4;
-    skinStroke(g, kx + 14, y - 2, mid, y + sag * .4, rr);
-    g.fillStyle = 'rgba(255,240,230,.35)'; g.beginPath(); g.ellipse(kx + 8, y - rr * .35, rr * .6, rr * .35, 0, 0, 6.3); g.fill();   // зглоб
-    skinStroke(g, mid, y + sag * .4, tip, y + sag, rr * .95);
-    crease(g, mid + 2, y + sag * .4, rr, 0); crease(g, kx - 4, y, rr, 0);
-    g.save(); g.translate(tip, y + sag); g.rotate(Math.PI);   // нокт на врвот
-    var ng = g.createLinearGradient(0, -rr, 0, rr); ng.addColorStop(0, '#fbe6dc'); ng.addColorStop(1, '#e8b9a6');
-    g.fillStyle = ng; g.beginPath(); g.roundRect(-rr * .7, -rr * .55, rr * 1.05, rr * 1.1, rr * .5); g.fill(); g.strokeStyle = 'rgba(150,90,70,.35)'; g.lineWidth = 1; g.stroke();
-    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(-rr * .2, -rr * .25, rr * .25, rr * .08, 0, 0, 6.3); g.fill(); g.restore();
-  });
-  // палец: од дланката нагоре по левата страна; при стискање легнува преку прстите
-  var bx = H.pl - 14, by = H.rows[2] + r * .6, ta = -1.3 + q * .9, L = H.gap * 2.5, tx = bx + Math.cos(ta) * L, ty = by + Math.sin(ta) * L;
-  skinStroke(g, bx - 10, by + 30, bx, by, r * 1.35);
-  skinStroke(g, bx, by, tx, ty, r * 1.05); crease(g, bx + Math.cos(ta) * L * .45, by + Math.sin(ta) * L * .45, r, ta);
-  g.save(); g.translate(tx, ty); g.rotate(ta);
-  var tg = g.createLinearGradient(0, -r, 0, r); tg.addColorStop(0, '#fbe6dc'); tg.addColorStop(1, '#e8b9a6');
-  g.fillStyle = tg; g.beginPath(); g.roundRect(-r * .55, -r * .62, r * 1.15, r * 1.24, r * .55); g.fill(); g.strokeStyle = 'rgba(150,90,70,.35)'; g.lineWidth = 1; g.stroke();
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(0, -r * .3, r * .3, r * .09, 0, 0, 6.3); g.fill(); g.restore();
-}
-function drawGripShade(g, H) {   // сенка на телото каде што влегуваат прстите
-  if (H.q < .03) return; g.save(); g.beginPath(); var m = { x: (P[N - 1].x + P[0].x) / 2, y: (P[N - 1].y + P[0].y) / 2 }; g.moveTo(m.x, m.y);
-  for (var k = 0; k < N; k++) { var n = P[(k + 1) % N]; g.quadraticCurveTo(P[k].x, P[k].y, (P[k].x + n.x) / 2, (P[k].y + n.y) / 2); } g.closePath(); g.clip();
-  [H.rows[0] - H.r, H.rows[3] + H.r].forEach(function (y, k) { var lg = g.createLinearGradient(0, y + (k ? 26 : -26), 0, y); lg.addColorStop(0, 'rgba(30,0,40,0)'); lg.addColorStop(1, 'rgba(30,0,40,' + .3 * H.q + ')');
-    g.fillStyle = lg; g.fillRect(0, k ? y : y - 26, W, 26); });
+function drawFinger(g, F) {
+  var L = 380, ex = F.x + Math.cos(F.ang) * L, ey = F.y + Math.sin(F.ang) * L;
+  g.lineCap = 'round';
+  g.beginPath(); g.moveTo(F.x, F.y); g.lineTo(ex, ey); g.strokeStyle = '#b9805f'; g.lineWidth = F.r * 2 + 3; g.stroke();
+  var nx = -Math.sin(F.ang), ny = Math.cos(F.ang), lg = g.createLinearGradient(F.x - nx * F.r, F.y - ny * F.r, F.x + nx * F.r, F.y + ny * F.r);
+  lg.addColorStop(0, '#fbdcc4'); lg.addColorStop(.55, '#f0c3a1'); lg.addColorStop(1, '#d59f7c');
+  g.beginPath(); g.moveTo(F.x, F.y); g.lineTo(ex, ey); g.strokeStyle = lg; g.lineWidth = F.r * 2; g.stroke();
+  g.save(); g.translate(F.x, F.y); g.rotate(F.ang);
+  if (F.top) { var ng = g.createLinearGradient(0, -F.r * .7, 0, F.r * .2); ng.addColorStop(0, '#fff3ee'); ng.addColorStop(1, '#f3c4bb');
+    g.fillStyle = ng; g.beginPath(); g.roundRect(-F.r * .62, -F.r * .72, F.r * 1.35, F.r * 1.1, F.r * .5); g.fill();
+    g.strokeStyle = 'rgba(150,90,70,.35)'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(-F.r * .1, -F.r * .45, F.r * .28, F.r * .1, 0, 0, 6.3); g.fill(); }
+  g.strokeStyle = 'rgba(140,85,60,.3)'; g.lineWidth = 2;
+  [2.6, 2.9, 5.6].forEach(function (m) { g.beginPath(); g.moveTo(F.r * m, -F.r * .55); g.quadraticCurveTo(F.r * (m + .12), 0, F.r * m, F.r * .55); g.stroke(); });
   g.restore();
 }
 var cv = $('cv'), g2 = cv.getContext('2d'), lastT = 0;
@@ -935,15 +895,15 @@ function frame(now) {
   hand.q += (tq - hand.q) * (hand.down ? .22 : .3);
   hand.x += (hand.tx - hand.x) * .2; hand.peak = Math.max(hand.peak, hand.q);
   var mat = cur.mat || 'taba', ks = mat === 'gel' ? .0045 : mat === 'crunch' ? .003 : .0017, damp = mat === 'gel' ? .9 : .8;
-  var HP = handPose(), act = hand.h > .05 ? HP.walls : []; AM = 1;
+  var fl = fingerList(), act = hand.h > .05 ? fl : [];
   step(act, ks, damp); step(act, ks, damp);
   if (cur.bar && hand.down) crackStep(dt);
   var def = 0, sp = 0; for (var i = 0; i < N; i++) { def += Math.hypot(P[i].x - REST[i].x, P[i].y - REST[i].y); sp += Math.hypot(P[i].x - P[i].px, P[i].y - P[i].py); }
   def /= N * 60; sp /= N;
   g2.clearRect(0, 0, W, H);
-  if (hand.h > .02) drawHandBack(g2, HP);
+  if (hand.h > .02) drawFinger(g2, fl[2]);
   draw(g2, P, cur, now / 1000);
-  if (hand.h > .02) { drawGripShade(g2, HP); drawHandFront(g2, HP); }
+  if (hand.h > .02) { drawFinger(g2, fl[0]); drawFinger(g2, fl[1]); }
   liveSound(clamp(sp * .5 + Math.abs(hand.q - lastQ) * 6, 0, 1.5), hand.q, def, mat); lastQ = hand.q;
   $('meter').style.width = clamp(hand.q, 0, 1) * 100 + '%';
   requestAnimationFrame(frame);
