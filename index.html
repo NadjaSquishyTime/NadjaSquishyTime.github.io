@@ -1379,7 +1379,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-18-4';
+var APP_VER = '2026-11-18-5';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1413,7 +1413,8 @@ var GREET = {
   'ba3a575a3084439b': ['Здраво Надја, tennis queen! 🎾👑', 'Zdravo Nahdya, tennis queen!'],
   '069496a50bd67643': ['Здраво Деа смеа! 😂', 'Zdravo Deh-ah, smeh-ah!'],
   '1d8fc03c473b151f': ['Вики! Вики! Вики! 🎉', 'Veekee! Veekee! Veekee!'],
-  'c6267e36b14de7e5': ['Hello there! 👋', 'Hello there!']
+  'c6267e36b14de7e5': ['Hello there! 👋', 'Hello there!'],
+  '45431caa3f66821a': ['Hello there! 👋', 'Hello there!']
 };
 var greeted = false;
 function showGreeting() {   // еднаш по отворање, откако е внесен кодот
@@ -1456,9 +1457,9 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 // STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
-// Тест за сопственикот: …github.io/#test-kings → 2 кутии со двата King (само за кодот C6267E, може повеќе пати)
+// Тест за сопственикот: …github.io/#test-kings → 2 кутии со двата King (само за кодовите на сопственикот: C6267E и 45431C / ELTM-TL8N)
 if (location.hash === '#test-kings') setTimeout(function () {
-  if (myHash() !== 'c6267e36b14de7e5') return; SV.boxes += 2; SV.force = SV.force || [];
+  if (['c6267e36b14de7e5', '45431caa3f66821a'].indexOf(myHash()) < 0) return; SV.boxes += 2; SV.force = SV.force || [];
   delete SV.owned.king; delete SV.owned.king2;   // за да се отворат како „нови“
   SV.force.push({ id: 'king', at: (SV.opens || 0) + 1 }, { id: 'king2', at: (SV.opens || 0) + 2 }); save(); home();
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
