@@ -1379,7 +1379,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-18-2';
+var APP_VER = '2026-11-18-3';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1456,6 +1456,14 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 // STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
+// Тест за сопственикот: …github.io/#test-kings → 2 кутии со двата King (само за кодот C6267E, може повеќе пати)
+if (location.hash === '#test-kings') setTimeout(function () {
+  if (myHash() !== 'c6267e36b14de7e5') return; SV.boxes += 2; SV.force = SV.force || [];
+  delete SV.owned.king; delete SV.owned.king2;   // за да се отворат како „нови“
+  SV.force.push({ id: 'king', at: (SV.opens || 0) + 1 }, { id: 'king2', at: (SV.opens || 0) + 2 }); save(); home();
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  alert('Тест: доби 2 кутии. Во првата е King Squishy, во втората King Squishy II 👑');
+}, 1200);
 // Проверка: отвори ја апликацијата со #stats на крајот од линкот (…github.io/#stats) за да видиш дали праќањето работи.
 if (location.hash === '#stats') setTimeout(function () {
   var me = myHash(), lines = ['Верзија: ' + APP_VER, 'Твој ID: ' + (me ? me.slice(0, 6).toUpperCase() : 'НЕМА (не е внесен код)'), 'Праќање: ' + (STATS_URL ? 'вклучено' : 'ИСКЛУЧЕНО')];
