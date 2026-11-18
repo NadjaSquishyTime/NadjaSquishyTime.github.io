@@ -170,6 +170,10 @@
   .umsg.on { opacity: 1; transform: none; }
   .umsg.blink.on { animation: msgblink .45s steps(1, end) infinite; }
   @keyframes msgblink { 50% { background: #ffffff; color: #e8324a; box-shadow: 0 0 40px 10px #ff5d7a; } }
+  .fxconf, .fxstar { position: fixed; top: -24px; z-index: 90; pointer-events: none; opacity: 0; animation: confall linear forwards; }
+  .fxconf { width: 9px; height: 14px; border-radius: 2px; }
+  .fxstar { font-size: 22px; }
+  @keyframes confall { 5% { opacity: 1; } 100% { transform: translate(var(--dx), 105vh) rotate(var(--r)); opacity: 1; } }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -1163,7 +1167,7 @@ $('back').addEventListener('click', function () { running = false; if (cur) cur.
 function home() {
   showUsage();
   grantBonus(); renderOdds();
-  var all = allVariants(), own = 0, grid = $('grid'); grid.innerHTML = '';
+  var all = allVariants().filter(function (v) { return !v.only || canHave(v); }), own = 0, grid = $('grid'); grid.innerHTML = '';   // King-овите ги гледаат само Надја и Деа
   all.sort(function (a, b) { return ORDER.indexOf(a.rar) - ORDER.indexOf(b.rar); });
   all.forEach(function (v) {
     var n = SV.owned[v.id] || 0, r = RAR[v.rar]; if (n) own++;
@@ -1172,7 +1176,7 @@ function home() {
     if (n) b.addEventListener('click', function () { play(v); });
     grid.appendChild(b);
   });
-  $('ownN').textContent = own + ' / ' + V.length;
+  $('ownN').textContent = own + ' / ' + V.filter(function (v) { return !v.only || canHave(v); }).length;
   $('boxN').textContent = SV.boxes ? 'Имаш ' + SV.boxes + (SV.boxes === 1 ? ' кутија' : ' кутии') : 'Немаш кутии, стискај за нова';
   $('boxBtn').disabled = !SV.boxes;
   var ar = advReady(); $('advN').textContent = (SV.adv ? SV.adv.open.length : 0) + ' / 12 отворени' + (ar ? ' · ' + (ar === 1 ? 'една врата чека' : ar + ' врати чекаат') : ' · дојди утре');
@@ -1383,7 +1387,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-18-7';
+var APP_VER = '2026-11-18-8';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1406,7 +1410,8 @@ var MESSAGES = [
   { id: 'gift-eltm-10', to: '45431caa3f66821a', text: 'Подарок! 🎁 Доби 10 Mystery Box!', times: 1, sec: 4, boxes: 10 },   // ELTM-TL8N
   { id: 'gift-lina-15', to: '4718fd86bdf2128c', text: 'Лина цура фина, ти си вистински добитник! 🏆 +15 Mystery Box 🎁', times: 1, sec: 5, blink: 1, vib: 1, boxes: 15 },   // RBUY-5AEH (Лина)
   { id: 'gift-kings-nadja', to: 'ba3a575a3084439b', text: 'Подарок! 🎁 Доби 20 Mystery Box… а во нив чека нешто кралско 👑', times: 1, sec: 5, blink: 1, vib: 1, boxes: 20, force: ['king', 'king2'] },   // Надја
-  { id: 'gift-kings-dea', to: '069496a50bd67643', text: 'Подарок! 🎁 Доби 20 Mystery Box… а во нив чека нешто кралско 👑', times: 1, sec: 5, blink: 1, vib: 1, boxes: 20, force: ['king', 'king2'] }   // Деа
+  { id: 'gift-kings-dea', to: '069496a50bd67643', text: 'Подарок! 🎁 Доби 20 Mystery Box… а во нив чека нешто кралско 👑', times: 1, sec: 5, blink: 1, vib: 1, boxes: 20, force: ['king', 'king2'] },   // Деа
+  { id: 'nadja-treat-5', to: '*', text: 'Надја части 5 кутии! 🎁🎉', times: 1, sec: 5, boxes: 5, party: 1 }   // до СИТЕ корисници
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
 var USERS = { 'ba3a575a3084439b': 'Надја', '069496a50bd67643': 'Деа', '1d8fc03c473b151f': 'Вики', '695b7c56abad8d0b': 'Ева', '4718fd86bdf2128c': 'Лина', '2ffd094112a5d859': 'Вера' };
@@ -1429,13 +1434,25 @@ function showGreeting() {   // еднаш по отворање, откако е
 setTimeout(showGreeting, 700); setInterval(showGreeting, 1500);
 function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
 var msgBusy = false;
+function party() {   // конфети и ѕвезди по целиот екран + весела мелодија
+  var cols = ['#ff5d7a', '#ffd23f', '#3fd27a', '#4da3ff', '#c97bff', '#ff8a1f'];
+  for (var i = 0; i < 90; i++) { var e = document.createElement('span'), star = i % 4 === 0;
+    e.className = star ? 'fxstar' : 'fxconf'; if (star) e.textContent = i % 8 ? '⭐' : '✨'; else e.style.background = cols[i % cols.length];
+    e.style.left = Math.random() * 100 + 'vw'; e.style.animationDelay = Math.random() * 1.6 + 's'; e.style.animationDuration = 2.6 + Math.random() * 2 + 's';
+    e.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); e.style.setProperty('--r', (Math.random() * 900 - 450) + 'deg');
+    document.body.appendChild(e); setTimeout(function (n) { n.remove(); }, 6500, e); }
+  [523, 659, 784, 1047, 0, 784, 1047, 0, 880, 1047, 1319, 1568].forEach(function (f, k) { if (f) { tone(f, f, .22, 'triangle', .13, .1 + k * .13); tone(f / 2, f / 2, .2, 'square', .03, .1 + k * .13); } });
+  [1047, 1319, 1568, 2093].forEach(function (f) { tone(f, f, 1.1, 'triangle', .06, 1.75); }); for (var b = 0; b < 8; b++) click(2500 + Math.random() * 2000, .25, .05 + b * .06);
+  say('Nahdya treats everyone! Five boxes!');
+}
 function checkMessages() {
   if (msgBusy || $('umsg').classList.contains('greet') || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
   var me = myHash(); SV.msgs = SV.msgs || {};
-  for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.hold || m.to !== me || SV.msgs[m.id]) continue;   // hold: задржана, уште не се праќа
+  for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.hold || !me || (m.to !== me && m.to !== '*') || SV.msgs[m.id]) continue;   // to: '*' = до сите   // hold: задржана, уште не се праќа
     msgBusy = true; SV.msgs[m.id] = 1; if (m.force) { SV.force = SV.force || []; var slots = []; while (slots.length < m.force.length) { var sl = 1 + Math.floor(Math.random() * (m.boxes || 10)); if (slots.indexOf(sl) < 0) slots.push(sl); }
       m.force.forEach(function (id, k) { SV.force.push({ id: id, at: (SV.opens || 0) + slots[k] }); }); }
     if (m.boxes) { SV.boxes += m.boxes; if (typeof home === 'function' && !document.querySelector('.screen.open')) home(); } save(); var el = $('umsg'), n = 0; $('umsgT').textContent = m.text; el.classList.toggle('blink', !!m.blink);
+    if (m.party) party();
     (function show() { el.classList.add('on'); tone(880, 880, .15, 'triangle', .12); tone(660, 660, .2, 'triangle', .12, .15); if (navigator.vibrate) navigator.vibrate(m.vib ? [400, 150, 400, 150, 400, 150, 400, 150, 400, 150, 400, 150, 400, 150, 400, 150, 400] : 60);   // vib: вибрира цело време додека трае пораката
       setTimeout(function () { el.classList.remove('on'); n++; if (n < m.times) setTimeout(show, 700); else { msgBusy = false; setTimeout(function () { el.classList.remove('blink'); }, 400); } }, m.sec * 1000); })();
     return; }
