@@ -336,8 +336,8 @@ var V = [
   { id: 'tennis', name: 'Тениски ас', rar: 'ooak', shape: 'ball', pack: 'can', fuzz: 1, seams: 1, orbit: 1, sfx: 'tennis', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'], gl: ['#ffffff', '#fffbd0'], gn: 22 },
   { id: 'globe', name: 'Snow Ball', rar: 'ooak', season: 'xmas', shape: 'ball', globe: 1, noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
   { id: 'gtree', name: 'Grinch Christmas Tree', rar: 'ooak', season: 'xmas', shape: 'xmastree', xdeco: 1, hat: 'santa', feet: 1, feetc: '#c0283a', sfx: 'jingle', fx: 'lights', c: ['#bfeab0', '#2f8f3a', '#145a22'], glow: '#ffd23f' },
-  { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
-  { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
+  { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
+  { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -1246,6 +1246,7 @@ function redeem(raw) {
   if (!v && vc.length === 10 && vc.charAt(0) === 'U') { var u = { seed: parseInt(vc.slice(1, 7), 36), serial: parseInt(vc.slice(7), 36) };
     if (!SV.uniq.some(function (x) { return x.seed === u.seed; })) SV.uniq.push(u); v = uniqueVariant(u); }
   if (!v) return { err: 'Оваа кнедла не постои во твојата верзија. Освежи ја апликацијата.' };
+  if (!canHave(v)) return { err: 'Оваа кнедла не може да се разменува.' };
   SV.owned[v.id] = (SV.owned[v.id] || 0) + 1; SV.redeemed.push(key); save(); return { v: v };
 }
 function copyText(t, btn) { var done = function () { btn.textContent = 'Копирано ✓'; };
@@ -1253,7 +1254,7 @@ function copyText(t, btn) { var done = function () { btn.textContent = 'Копи
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {}); }
 function tradeScreen() {
   $('myId').textContent = myID(); var pk = $('pick'); pk.innerHTML = '';
-  var own = allVariants().filter(function (v) { return SV.owned[v.id]; });
+  var own = allVariants().filter(function (v) { return SV.owned[v.id] && !v.only; });   // King-овите не се разменуваат
   if (!own.length) pk.innerHTML = '<p class="step">Немаш кнедли за давање. Отвори кошничка прво.</p>';
   own.forEach(function (v) { var b = document.createElement('button'); b.className = v.id === pickId ? 'sel' : '';
     b.innerHTML = '<img src="' + thumb(v) + '" alt="">' + (SV.owned[v.id] > 1 ? '<span class="cnt">×' + SV.owned[v.id] + '</span>' : '') + v.name;
@@ -1300,13 +1301,16 @@ function rareRoll() {
   for (var id in w) if (w[id] === me && !SV.won[id] && (SV.opens || 0) >= RARE_MIN && Math.random() < RARE_P) { SV.won[id] = 1; return byId(id); }
   return null;
 }
+function canHave(v) { return !v.only || v.only.indexOf(myHash()) >= 0; }   // only: само овие кодови можат да го имаат (King: Надја и Деа)
+function cleanOnly() { var ch = false; V.forEach(function (v) { if (v.only && SV.owned[v.id] && !canHave(v)) { delete SV.owned[v.id]; ch = true; } });   // тргни ги од колекцијата кај другите
+  if (SV.force) SV.force = SV.force.filter(function (f) { var v = byId(f.id); return v && canHave(v); }); if (ch) { save(); if (!document.querySelector('.screen.open')) home(); } }
+setTimeout(cleanOnly, 500); setInterval(cleanOnly, 5000);
 function roll() {
-  if (SV.force && SV.force.length) for (var fi = 0; fi < SV.force.length; fi++) if (SV.force[fi].at <= (SV.opens || 0)) { var fv = byId(SV.force[fi].id); SV.force.splice(fi, 1); if (fv) return fv; }   // подарени squishies
+  if (SV.force && SV.force.length) for (var fi = 0; fi < SV.force.length; fi++) if (SV.force[fi].at <= (SV.opens || 0)) { var fv = byId(SV.force[fi].id); SV.force.splice(fi, 1); if (fv && canHave(fv)) return fv; }   // подарени squishies
   var rr = rareRoll(); if (rr) return rr;
   var x = Math.random() * 100, acc = 0, rar = 'common', w = odds();
   for (var i = 0; i < ORDER.length; i++) { acc += w[ORDER[i]]; if (x < acc) { rar = ORDER[i]; break; } }
-  if (rar === 'ooak' && !SV.owned.tennis) return byId('tennis');
-  if (rar === 'ooak' && Math.random() < .5) { var kings = ['king', 'king2'].filter(function (id) { return !SV.owned[id]; }); if (kings.length) return byId(any(kings)); }   // King Squishy (двата)   // првиот One of a Kind секогаш е тенискиот
+  if (rar === 'ooak' && !SV.owned.tennis) return byId('tennis');   // првиот One of a Kind секогаш е тенискиот
   if (rar === 'ooak') { var u = { seed: Math.floor(Math.random() * 1e9), serial: Math.floor(Math.random() * 9999) + 1 }; SV.uniq.push(u); return uniqueVariant(u); }
   var pool = V.filter(function (v) { return v.rar === rar && !v.advent; }); return pool[Math.floor(Math.random() * pool.length)];
 }
@@ -1379,7 +1383,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-18-6';
+var APP_VER = '2026-11-18-7';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1457,14 +1461,6 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 // STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
-// Тест за сопственикот: …github.io/#test-kings → 2 кутии со двата King (само за кодовите на сопственикот: C6267E и 45431C / ELTM-TL8N)
-if (location.hash === '#test-kings') setTimeout(function () {
-  if (['c6267e36b14de7e5', '45431caa3f66821a'].indexOf(myHash()) < 0) return; SV.boxes += 2; SV.force = SV.force || [];
-  delete SV.owned.king; delete SV.owned.king2;   // за да се отворат како „нови“
-  SV.force.push({ id: 'king', at: (SV.opens || 0) + 1 }, { id: 'king2', at: (SV.opens || 0) + 2 }); save(); home();
-  try { history.replaceState(null, '', location.pathname); } catch (e) {}
-  alert('Тест: доби 2 кутии. Во првата е King Squishy, во втората King Squishy II 👑');
-}, 1200);
 // Проверка: отвори ја апликацијата со #stats на крајот од линкот (…github.io/#stats) за да видиш дали праќањето работи.
 if (location.hash === '#stats') setTimeout(function () {
   var me = myHash(), lines = ['Верзија: ' + APP_VER, 'Твој ID: ' + (me ? me.slice(0, 6).toUpperCase() : 'НЕМА (не е внесен код)'), 'Праќање: ' + (STATS_URL ? 'вклучено' : 'ИСКЛУЧЕНО')];
