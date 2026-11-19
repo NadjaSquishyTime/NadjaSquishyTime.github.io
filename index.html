@@ -197,6 +197,8 @@
   .qwin { display: flex; justify-content: center; gap: 4px; } .qwin img { width: 90px; animation: qpop .5s cubic-bezier(.2,1.5,.4,1) both; }
   .pphoto { display: none; width: min(340px, 86vw); border-radius: 24px; margin: 18px auto 8px; box-shadow: 0 0 40px rgba(255,123,213,.45); animation: qpop .5s cubic-bezier(.2,1.5,.4,1); }
   #play.card .pphoto { display: block; } #play.card #cv, #play.card .hint, #play.card .stats { display: none; }
+  #open.zap { animation: zapflash .45s; }
+  #play.zap { animation: zapflash .45s; } @keyframes zapflash { 15% { background-color: rgba(255,240,140,.55); } 35% { background-color: rgba(120,180,255,.35); } }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -386,6 +388,7 @@ var V = [
   { id: 'wilma', name: 'WilmaWilson', rar: 'ooak', shape: 'wilma', photo: 'slike/wilma.webp', noface: 1, racketClip: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'racket', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'] },
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
+  { id: 'thunderhero', name: 'Thunder Hero', rar: 'legend', face: 'hero', hero: 1, fx: 'hero', sfx: 'hero', mat: 'gel', glow: '#ffe14d', c: ['#9fd8ff', '#2f6fe0', '#0b2a8a'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -650,6 +653,15 @@ function band(g, B, from, to, t, col, w, zig) { g.beginPath(); for (var i = 0; i
 function star(g, p, r, c) { g.fillStyle = c; g.beginPath(); for (var k = 0; k < 10; k++) { var ra = k % 2 ? r * .45 : r, an = k * .6283 - 1.5708; k ? g.lineTo(p.x + Math.cos(an) * ra, p.y + Math.sin(an) * ra) : g.moveTo(p.x + Math.cos(an) * ra, p.y + Math.sin(an) * ra); } g.fill(); }
 function tri(g, p, s, c) { s *= 1.35; g.fillStyle = c; g.beginPath(); g.moveTo(p.x, p.y - s); g.lineTo(p.x + s, p.y + s * .8); g.lineTo(p.x - s, p.y + s * .8); g.fill(); }
 var FACE = {
+  hero: function (g, B, a, b, m) {
+    var L = a.x < b.x ? a : b, R = a.x < b.x ? b : a, my = (L.y + R.y) / 2, mx = (L.x + R.x) / 2;
+    var mk = g.createLinearGradient(0, my - 16, 0, my + 16); mk.addColorStop(0, '#ff3b4f'); mk.addColorStop(1, '#9a0f22');
+    g.fillStyle = mk; g.beginPath(); g.moveTo(L.x - 26, L.y - 4); g.quadraticCurveTo(mx, my - 20, R.x + 26, R.y - 4); g.lineTo(R.x + 34, R.y - 12); g.lineTo(R.x + 22, R.y + 13);
+    g.quadraticCurveTo(mx, my + 8, L.x - 22, L.y + 13); g.lineTo(L.x - 34, L.y - 12); g.closePath(); g.fill();
+    g.strokeStyle = '#16121f'; g.lineWidth = 2.5; g.stroke();
+    var hot = cur && cur.hero ? hand.q * hand.h : 0;
+    [a, b].forEach(function (e) { g.fillStyle = hot > .55 ? '#fff2a0' : '#ffffff'; g.beginPath(); g.ellipse(e.x, e.y + 1, 10, 8, 0, 0, 6.3); g.fill(); dot(g, { x: e.x, y: e.y + 1 }, 5, hot > .55 ? '#ff3b3b' : '#16121f'); dot(g, { x: e.x + 2, y: e.y - 1 }, 1.6, '#fff'); });
+    g.beginPath(); g.moveTo(m.x - 12, m.y); g.quadraticCurveTo(m.x, m.y + 14, m.x + 13, m.y - 2); g.strokeStyle = '#16121f'; g.lineWidth = 3.5; g.lineCap = 'round'; g.stroke(); },
   // ---------- Special Edition лица ----------
   dollar: function (g, B, a, b, m) {   // очи со $ (златна паричка)
     [a, b].forEach(function (e) { dot(g, e, 15, '#0b0b10'); g.fillStyle = '#5fbf4a'; g.font = '900 19px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', e.x, e.y + 1); dot(g, { x: e.x + 7, y: e.y - 8 }, 3.2, '#fff'); });
@@ -817,6 +829,12 @@ function specialFx(fx) {   // ефект на целиот екран кога �
     else { e.className = 'fxbulb'; e.style.setProperty('--c', fx === 'king' ? ['#ffd23f', '#fff3a6', '#ffb300'][i % 3] : ['#ff3b5c', '#ffd23f', '#3fd27a', '#4da3ff', '#ff8a1f', '#c97bff'][i % 6]); }
     e.style.left = Math.random() * 100 + '%'; e.style.animationDelay = Math.random() * 2.2 + 's'; e.style.animationDuration = (fx === 'snow' ? 3 + Math.random() * 3 : 2.4 + Math.random() * 1.6) + 's';
     o.appendChild(e); setTimeout(function (n) { n.remove(); }, 7000, e); }
+  if (fx === 'hero') { var hi;
+    for (hi = 0; hi < 34; hi++) { var he = document.createElement('span'); he.className = 'fxflake'; he.textContent = ['⚡', '💥', '⭐', '⚡'][hi % 4]; he.style.fontSize = (16 + Math.random() * 22) + 'px';
+      he.style.left = Math.random() * 100 + '%'; he.style.animationDelay = Math.random() * 1.6 + 's'; he.style.animationDuration = 2 + Math.random() * 1.6 + 's'; o.appendChild(he); setTimeout(function (n) { n.remove(); }, 6000, he); }
+    [0, .5, 1.1].forEach(function (d) { setTimeout(function () { o.classList.remove('zap'); void o.offsetWidth; o.classList.add('zap'); click(3200, .4); burst(.7, 'lowpass', 180, .6); }, d * 1000); });
+    [392, 523, 659, 784, 0, 659, 784, 1047].forEach(function (f, k) { if (f) { tone(f, f, .22, 'sawtooth', .05, .2 + k * .14); tone(f, f, .25, 'triangle', .12, .2 + k * .14); } });
+    [523, 659, 784, 1047].forEach(function (f) { tone(f, f, 1, 'triangle', .07, 1.35); }); return; }
   if (fx === 'sped') { var si;   // шарени искри, срца и ѕвезди + магична мелодија
     for (si = 0; si < 40; si++) { var se = document.createElement('span'); se.className = 'fxflake'; se.textContent = ['✨', '💖', '⭐', '🫧', '💫'][si % 5]; se.style.fontSize = (14 + Math.random() * 20) + 'px';
       se.style.left = Math.random() * 100 + '%'; se.style.animationDelay = Math.random() * 2 + 's'; se.style.animationDuration = 2.8 + Math.random() * 2 + 's'; o.appendChild(se); setTimeout(function (n) { n.remove(); }, 7000, se); }
@@ -856,6 +874,11 @@ function draw(g, P, v, time) {
     var fg = g.createRadialGradient(f.x - 7, f.y - 8, 2, f.x, f.y, 30); fg.addColorStop(0, v.feetc || v.c[1]); fg.addColorStop(1, v.feetc || v.c[2]);
     g.fillStyle = fg; g.beginPath(); g.ellipse(f.x, f.y + 4, 30, 25, 0, 0, 6.3); g.fill();
     if (v.feetc) { g.fillStyle = 'rgba(0,0,0,.17)'; g.beginPath(); g.ellipse(f.x + 3, f.y + 13, 25, 14, 0, 0, 6.3); g.fill(); } });
+  if (v.hero) { var sl = B(N * .84, 1), sr = B(N * .16, 1), lo = Math.max(sl.y, sr.y) + 150, wv = Math.sin(time * 3) * 8;   // црвена наметка зад телото
+    var cpg = g.createLinearGradient(0, sl.y, 0, lo); cpg.addColorStop(0, '#ff3b4f'); cpg.addColorStop(1, '#8a0c1e');
+    g.fillStyle = cpg; g.beginPath(); g.moveTo(sl.x + 10, sl.y); g.quadraticCurveTo(sl.x - 40 + wv, lo - 60, sl.x - 30 + wv, lo);
+    for (var ck = 1; ck <= 4; ck++) g.lineTo(sl.x - 30 + wv + (sr.x - sl.x + 60) * ck / 4, lo - (ck % 2 ? 14 : 0) + Math.sin(time * 4 + ck) * 4);
+    g.quadraticCurveTo(sr.x + 40 + wv, lo - 60, sr.x - 10, sr.y); g.closePath(); g.fill(); }
   if (v.catears) [[N * .9, -1], [N * .1, 1]].forEach(function (q) { var p = B(q[0], 1), d = q[1];   // проѕирни мачешки уши
     g.save(); g.translate(p.x, p.y + 8); g.rotate(d * .35); g.fillStyle = v.c[1]; g.globalAlpha = .75; g.beginPath(); g.moveTo(-17, 6); g.lineTo(0, -34); g.lineTo(17, 6); g.closePath(); g.fill();
     g.globalAlpha = .9; g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; g.restore(); });
@@ -1007,6 +1030,17 @@ function draw(g, P, v, time) {
     g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 1.2; for (rs = RH + 18; rs < RH + 46; rs += 5) { g.beginPath(); g.moveTo(-5, rs); g.lineTo(5, rs + 3); g.stroke(); }
     dot(g, { x: 0, y: RH + 49 }, 5, '#3fd25f');
     g.restore(); }
+  if (v.hero) { var em = B(N * .5, .78), es = 1 + .08 * Math.sin(time * 5);   // амблем: гром во круг
+    g.save(); g.translate(em.x, em.y + 14); g.scale(es, es); dot(g, { x: 0, y: 0 }, 22, '#16121f'); dot(g, { x: 0, y: 0 }, 19, '#ffe14d'); dot(g, { x: 0, y: 0 }, 15, '#e8324a');
+    g.beginPath(); [[4, -14], [-9, 2], [-1, 2], [-5, 14], [9, -3], [1, -3]].forEach(function (q, k) { k ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); }); g.closePath(); g.fillStyle = '#ffe14d'; g.fill(); g.strokeStyle = '#16121f'; g.lineWidth = 1.5; g.stroke(); g.restore();
+    var pw = v === cur ? hand.q * hand.h : 0;
+    if (pw > .25 || Math.random() < .03) { g.strokeStyle = 'rgba(255,240,120,' + (.5 + pw * .5) + ')'; g.lineWidth = 2.5; g.lineJoin = 'round';   // струја околу телото
+      for (var zk = 0; zk < 2 + Math.round(pw * 4); zk++) { var zf = Math.random() * N, z0 = B(zf, 1.05); g.beginPath(); g.moveTo(z0.x, z0.y);
+        for (var zz = 1; zz <= 4; zz++) { var zp = B(zf + zz * 1.5, 1.08 + Math.random() * .25); g.lineTo(zp.x + (Math.random() - .5) * 14, zp.y + (Math.random() - .5) * 14); } g.stroke(); } }
+    if (pw > .55) { var le = B(N * .635, .46), re = B(N * .365, .46);   // ласерски очи
+      [le, re].forEach(function (e) { var k = e.x < cx; var lg2 = g.createLinearGradient(e.x, e.y, e.x + (k ? -260 : 260), e.y - 140); lg2.addColorStop(0, 'rgba(255,60,60,.95)'); lg2.addColorStop(1, 'rgba(255,60,60,0)');
+        g.strokeStyle = lg2; g.lineWidth = 7 * pw; g.lineCap = 'round'; g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(e.x + (k ? -260 : 260), e.y - 140); g.stroke();
+        g.strokeStyle = 'rgba(255,240,240,.9)'; g.lineWidth = 2; g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(e.x + (k ? -180 : 180), e.y - 97); g.stroke(); }); } }
   if (v.horn) { var hp0 = B(0, 1), hw = 11, hh = 44;   // спирален рог
     var hg2 = g.createLinearGradient(hp0.x - hw, 0, hp0.x + hw, 0); hg2.addColorStop(0, 'rgba(255,255,255,.55)'); hg2.addColorStop(.5, v.c[0]); hg2.addColorStop(1, v.c[1]);
     g.fillStyle = hg2; g.globalAlpha = .92; g.beginPath(); g.moveTo(hp0.x - hw, hp0.y + 8); g.lineTo(hp0.x, hp0.y - hh); g.lineTo(hp0.x + hw, hp0.y + 8); g.closePath(); g.fill(); g.globalAlpha = 1;
@@ -1140,7 +1174,7 @@ function say(text) {   // „O M G, …“ се пушта од снимката
   speak(text);
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else if (cur && cur.sfx === 'sped' && Math.random() < .45) say(any(['Special squish!', 'So special!', 'Sparkly!', 'Wow, this is wonderful!'])); else if (cur && cur.sfx === 'king' && Math.random() < .5) say(any(['Your Majesty!', 'Long live the King!', 'King squishy!'])); else say(any(CHEERS)); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else if (cur && cur.sfx === 'hero' && Math.random() < .5) say(any(['Super power!', 'Thunder power!', 'Hero time!', 'Zap zap!'])); else if (cur && cur.sfx === 'sped' && Math.random() < .45) say(any(['Special squish!', 'So special!', 'Sparkly!', 'Wow, this is wonderful!'])); else if (cur && cur.sfx === 'king' && Math.random() < .5) say(any(['Your Majesty!', 'Long live the King!', 'King squishy!'])); else say(any(CHEERS)); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
 function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
   var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -1322,6 +1356,8 @@ function up() {
   if (hand.peak > .45 && cur.sfx === 'sped') { var pent = [1047, 1175, 1319, 1568, 1760, 2093]; [0, 1, 2].forEach(function (k) { var f = any(pent); tone(f, f, .35, 'triangle', .09, k * .08); tone(f * 2, f * 2, .2, 'sine', .03, k * .08); }); fizz(.05, .07); fizz(.15, .06); }
   if (hand.peak > .45 && cur.sfx === 'king') [523, 659, 784].forEach(function (f, k) { tone(f, f, .22, 'sawtooth', .04, k * .1); tone(f, f, .25, 'triangle', .1, k * .1); });
   if (hand.peak > .45 && cur.sfx === 'racket') tennisHit();
+  if (hand.peak > .45 && cur.sfx === 'hero') { click(3200, .5); burst(1.1, 'lowpass', 170, .9); tone(85, 30, 1, 'sawtooth', .14, .05); tone(1800, 300, .35, 'square', .05); tone(2400, 600, .3, 'sawtooth', .04, .05);
+    var fl = $('play'); fl.classList.remove('zap'); void fl.offsetWidth; fl.classList.add('zap'); if (navigator.vibrate) navigator.vibrate([30, 40, 120]); }
   if (hand.peak > .45 && cur.sfx === 'tennis') { tone(540, 180, .07, 'triangle', .45); click(2300, .4); }
   var held = performance.now() - hand.t0, okSq = hand.peak > SQ_MIN && held > 380 && performance.now() - lastSq > 600;   // заштита од брзо спамирање
   if (held > 150 && !okSq) $('pHint').textContent = held <= 380 || hand.peak <= SQ_MIN ? 'Стисни посилно и подолго!' : 'Полека…';
@@ -1548,6 +1584,7 @@ $('box').addEventListener('click', function () {
   setTimeout(function () {
     if (gold) say('Golden! ' + omg());
     else if (prizeV.id === 'tennis') say('Ace! ' + omg());
+    else if (prizeV.id === 'thunderhero') say('Super power! ' + omg());
     else if (prizeV.rar === 'sped') say('Special squish! ' + omg());
     else if (prizeV.id === 'king' || prizeV.id === 'king2') say('All hail the King! ' + omg());
     else if (prizeV.id === 'globe') say('Let it snow! ' + omg());
@@ -1596,7 +1633,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-12';
+var APP_VER = '2026-11-19-13';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
