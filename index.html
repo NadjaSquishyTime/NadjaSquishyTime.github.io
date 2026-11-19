@@ -383,7 +383,7 @@ var V = [
   { id: 'spgalaxy', name: 'Starry Night', rar: 'sped', card: 'slike/card_spgalaxy.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#6f8cff', '#2a2f9e', '#0b0e3a'] },
   { id: 'spgoldplush', name: 'CUTE', rar: 'sped', card: 'slike/card_spgoldplush.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#ffe7a6', '#e3a93a', '#a8701a'] },
   { id: 'sprainbow', name: 'Rainbow Cute', rar: 'sped', card: 'slike/card_sprainbow.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#fff6d8', '#ffd6a8', '#b9a6e6'] },
-  { id: 'wilma', name: 'WilmaWilson', rar: 'ooak', shape: 'wilma', photo: 'slike/wilma.webp', noface: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'racket', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'] },
+  { id: 'wilma', name: 'WilmaWilson', rar: 'ooak', shape: 'wilma', photo: 'slike/wilma.webp', noface: 1, racketClip: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'racket', mat: 'gel', glow: '#e6ff3a', c: ['#fbffc2', '#d8f200', '#8cab00'] },
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
@@ -992,6 +992,20 @@ function draw(g, P, v, time) {
     for (i = 6; i >= -6; i--) { var hp = B(N * i * .0217, 1); g.lineTo(hp.x, hp.y); } g.closePath(); g.fill();
     band(g, B, -.14, .14, 1, v.bandc || '#ffffff', 18); dot(g, tip, 12, v.pomc || '#ffffff');
   }
+  if (v.racketClip) { var rp = B(N * .16, .84);   // шнола: мал тениски рекет горе десно
+    g.save(); g.translate(rp.x, rp.y); g.rotate(.75 + Math.sin(time * 1.6) * .04);
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(3, 3, 17, 23, 0, 0, 6.3); g.fill();
+    g.save(); g.beginPath(); g.ellipse(0, 0, 14, 20, 0, 0, 6.3); g.clip(); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(-15, -21, 30, 42);
+    g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 1; for (var rs = -12; rs <= 12; rs += 4) { g.beginPath(); g.moveTo(rs, -21); g.lineTo(rs, 21); g.stroke(); }
+    for (rs = -18; rs <= 18; rs += 4) { g.beginPath(); g.moveTo(-15, rs); g.lineTo(15, rs); g.stroke(); } g.restore();
+    g.strokeStyle = '#ff3d8b'; g.lineWidth = 4.5; g.beginPath(); g.ellipse(0, 0, 14, 20, 0, 0, 6.3); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 1.4; g.beginPath(); g.ellipse(-1, -1, 14, 20, 0, 3.6, 5.2); g.stroke();
+    g.fillStyle = '#ff3d8b'; g.beginPath(); g.moveTo(-4, 19); g.lineTo(4, 19); g.lineTo(2.5, 28); g.lineTo(-2.5, 28); g.closePath(); g.fill();   // грло
+    var hg3 = g.createLinearGradient(-3, 0, 3, 0); hg3.addColorStop(0, '#2a2a33'); hg3.addColorStop(.5, '#55555f'); hg3.addColorStop(1, '#1a1a20');
+    g.fillStyle = hg3; g.beginPath(); g.roundRect(-3, 27, 6, 20, 2); g.fill();   // рачка
+    g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1; for (rs = 30; rs < 46; rs += 4) { g.beginPath(); g.moveTo(-3, rs); g.lineTo(3, rs + 2); g.stroke(); }
+    dot(g, { x: 0, y: 48 }, 3.4, '#ff3d8b'); dot(g, { x: 15, y: 10 }, 4.5, '#e6ff3a'); dot(g, { x: 13.8, y: 8.8 }, 1.4, 'rgba(255,255,255,.7)');   // топче на шнолата
+    g.restore(); }
   if (v.horn) { var hp0 = B(0, 1), hw = 11, hh = 44;   // спирален рог
     var hg2 = g.createLinearGradient(hp0.x - hw, 0, hp0.x + hw, 0); hg2.addColorStop(0, 'rgba(255,255,255,.55)'); hg2.addColorStop(.5, v.c[0]); hg2.addColorStop(1, v.c[1]);
     g.fillStyle = hg2; g.globalAlpha = .92; g.beginPath(); g.moveTo(hp0.x - hw, hp0.y + 8); g.lineTo(hp0.x, hp0.y - hh); g.lineTo(hp0.x + hw, hp0.y + 8); g.closePath(); g.fill(); g.globalAlpha = 1;
@@ -1581,7 +1595,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-10';
+var APP_VER = '2026-11-19-11';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
