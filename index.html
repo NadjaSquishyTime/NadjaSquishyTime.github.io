@@ -1633,7 +1633,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-15';
+var APP_VER = '2026-11-19-16';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1664,7 +1664,7 @@ var MESSAGES = [
   { id: 'nadja-treat-5', to: '*', text: 'Надја части 5 кутии! 🎁🎉', times: 1, sec: 5, boxes: 5, party: 1 }   // до СИТЕ корисници
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
-var USERS = { 'ba3a575a3084439b': 'Надја', '069496a50bd67643': 'Деа', '1d8fc03c473b151f': 'Вики', '695b7c56abad8d0b': 'Ева', '4718fd86bdf2128c': 'Лина', '2ffd094112a5d859': 'Вера' };
+var USERS = { 'ba3a575a3084439b': 'Надја', '069496a50bd67643': 'Деа', '1d8fc03c473b151f': 'Вики', '695b7c56abad8d0b': 'Ева', '4718fd86bdf2128c': 'Лина', '2ffd094112a5d859': 'Вера', '836f5729fd7adfcc': 'Ана', '90777e2c48f5d351': 'Јоана', 'a92cece850e23058': 'Стефи' };
 function myName() { return USERS[myHash()] || ''; }
 function statId() { var me = myHash(), id = me ? me.slice(0, 6).toUpperCase() : ''; return myName() ? id + ' · ' + myName() : id; }
 // Личен поздрав при влегување: [текст на екранот, што кажува гласот (англиски глас, затоа е напишано по изговор)]
