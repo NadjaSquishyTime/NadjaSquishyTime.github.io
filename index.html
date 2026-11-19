@@ -1520,8 +1520,10 @@ var prizeV = null, taps = 0;
 // Снежна топка и Украсена елка: секоја може да ја добие само ЕДЕН корисник. Формулата тајно избира по еден код за влез (различен за двете),
 // и само тој корисник ја добива, со голема среќа: по најмалку 40 отворени кутии, 1% шанса по кутија, и само еднаш.
 var RARE1 = { globe: 'snow-globe-1', gtree: 'xmas-tree-1' }, RARE_MIN = 40, RARE_P = .01, RARE_WIN = null;
+var RARE_FIXED = { globe: 'ba3a575a3084439b' };   // Snow Ball: Надја (избрано од сопственикот)
 function rareWinners() { if (RARE_WIN) return RARE_WIN; RARE_WIN = {}; var taken = [];
-  Object.keys(RARE1).forEach(function (id) { var best = null, bh = null;
+  Object.keys(RARE_FIXED).forEach(function (id) { RARE_WIN[id] = RARE_FIXED[id]; taken.push(RARE_FIXED[id]); });
+  Object.keys(RARE1).forEach(function (id) { if (RARE_WIN[id]) return; var best = null, bh = null;
     CODES.forEach(function (c) { if (taken.indexOf(c) >= 0) return; var h = h53(c + RARE1[id]); if (bh === null || h < bh) { bh = h; best = c; } });
     RARE_WIN[id] = best; taken.push(best); });
   return RARE_WIN; }
@@ -1633,7 +1635,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-16';
+var APP_VER = '2026-11-19-17';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
