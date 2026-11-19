@@ -199,6 +199,11 @@
   #play.card .pphoto { display: block; } #play.card #cv, #play.card .hint, #play.card .stats { display: none; }
   #open.zap { animation: zapflash .45s; }
   #play.zap { animation: zapflash .45s; } @keyframes zapflash { 15% { background-color: rgba(255,240,140,.55); } 35% { background-color: rgba(120,180,255,.35); } }
+  .introimg { width: min(340px, 82vw); border-radius: 26px; box-shadow: 0 10px 34px rgba(150,80,200,.35); animation: introin .9s cubic-bezier(.2,1.4,.4,1) both, introfloat 4s 1s ease-in-out infinite; }
+  @keyframes introin { from { transform: scale(.7) translateY(20px); opacity: 0; } }
+  @keyframes introfloat { 50% { transform: translateY(-6px); } }
+  #lock .codein { background: #fff; color: #4a2a6a; border-color: #d6b8ff; }
+  #lock .err { color: #d12a5a; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -241,9 +246,9 @@
     <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
     <b id="pauseT" style="font-size:44px; letter-spacing:2px; margin-top:12px">30:00</b>
   </div>
-  <div class="screen open" id="lock" style="--rc:#7a3cff; z-index:50; justify-content:center">
-    <h1 style="position:relative">Dumpling <span>Vault</span></h1>
-    <p class="sub" style="margin:10px 0 22px">Внеси го твојот личен код за влез</p>
+  <div class="screen open" id="lock" style="--rc:#b56bff; z-index:50; justify-content:center; background: linear-gradient(#fbe9f6, #efe4ff 60%, #f7e3f1)">
+    <img class="introimg" src="slike/intro.webp" alt="Nadja Squishy Time">
+    <p class="sub" style="margin:4px 0 14px; color:#6a3d8f; font-weight:700">Внеси го твојот личен код за влез</p>
     <input id="code" class="codein" placeholder="XXXX-XXXX" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false">
     <button class="enter" id="enter">Влези</button>
     <p class="err" id="lockErr"></p>
@@ -1635,7 +1640,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-17';
+var APP_VER = '2026-11-19-18';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
