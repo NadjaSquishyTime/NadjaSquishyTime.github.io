@@ -1726,7 +1726,7 @@ $('box').addEventListener('click', function () {
   setTimeout(function () {
     if (gold) say('Golden! ' + omg());
     else if (prizeV.id === 'tennis') say('Ace! ' + omg());
-    else if (prizeV.id === 'poopfly') { say('Ewww! Stinky! ' + omg()); flyBuzz(2, .12); }
+    else if (prizeV.id === 'poopfly') { say('Oh shit!'); flyBuzz(2, .12); }
     else if (prizeV.id === 'thunderhero') say('Super power! ' + omg());
     else if (prizeV.rar === 'sped') say('Special squish! ' + omg());
     else if (prizeV.id === 'king' || prizeV.id === 'king2') say('All hail the King! ' + omg());
@@ -1776,7 +1776,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-25';
+var APP_VER = '2026-11-19-26';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
