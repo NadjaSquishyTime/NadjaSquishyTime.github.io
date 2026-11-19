@@ -184,6 +184,17 @@
   .fxconf { width: 9px; height: 14px; border-radius: 2px; }
   .fxstar { font-size: 22px; }
   @keyframes confall { 5% { opacity: 1; } 100% { transform: translate(var(--dx), 105vh) rotate(var(--r)); opacity: 1; } }
+  .quiz { position: fixed; inset: 0; z-index: 85; display: none; place-items: center; background: rgba(10,6,20,.7); backdrop-filter: blur(4px); }
+  .quiz.on { display: grid; }
+  .qbox { width: min(340px, 88vw); padding: 22px 18px; border-radius: 22px; text-align: center; background: linear-gradient(160deg, #2a1d4a, #1a1430); border: 2px solid #b56bff; box-shadow: 0 0 40px rgba(181,107,255,.45); animation: qpop .35s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes qpop { from { transform: scale(.6); opacity: 0; } }
+  .qt { font-weight: 900; font-size: 17px; color: #ffd23f; }
+  .qq { margin: 16px 0 12px; font-size: 40px; font-weight: 900; letter-spacing: 1px; color: #fff; }
+  #qin { width: 100%; box-sizing: border-box; font-size: 26px; text-align: center; padding: 10px; border-radius: 14px; border: 2px solid #6a4bb0; background: #120d22; color: #fff; }
+  .qbtns { display: flex; gap: 8px; margin-top: 12px; } .qbtns button { flex: 1; padding: 12px; border: 0; border-radius: 14px; font-weight: 800; font-size: 16px; background: linear-gradient(120deg, #7a3cff, #ff7bb0); color: #fff; } .qbtns .alt { background: #2e2650; }
+  .qmsg { min-height: 20px; margin: 10px 0 0; font-weight: 700; } .qmsg.bad { color: #ff7a8a; } .qmsg.ok { color: #7dffb0; }
+  .qbox.shake { animation: shake .4s; }
+  .qwin { display: flex; justify-content: center; gap: 4px; } .qwin img { width: 90px; animation: qpop .5s cubic-bezier(.2,1.5,.4,1) both; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -213,6 +224,13 @@
       <div class="stat"><span>Притисок</span><div class="bar sq"><i id="meter"></i></div><small id="pHint" class="phint"></small></div>
     </div>
   </div>
+  <div class="quiz" id="quiz"><div class="qbox" id="qbox">
+    <div class="qt">🧮 Реши ја задачата и добиј 3 squishies!</div>
+    <div class="qq" id="qq"></div>
+    <input id="qin" type="number" inputmode="numeric" placeholder="Твој одговор" autocomplete="off">
+    <div class="qbtns"><button id="qok">Провери</button><button id="qlater" class="alt">Подоцна</button></div>
+    <p class="qmsg" id="qmsg"></p><div class="qwin" id="qwin"></div>
+  </div></div>
   <div class="umsg" id="umsg"><div id="umsgT"></div></div>
   <div class="screen" id="pause" style="--rc:#7a3cff; z-index:60; justify-content:center; text-align:center">
     <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
@@ -1540,7 +1558,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-3';
+var APP_VER = '2026-11-19-4';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1588,6 +1606,36 @@ function showGreeting() {   // еднаш по отворање, откако е
 setTimeout(showGreeting, 700); setInterval(showGreeting, 1500);
 function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
 var msgBusy = false;
+// ---------- Игра: множење двоцифрен × двоцифрен → 3 squishies ----------
+// Се појавува на почетниот екран: прв пат ~25 с по отворање, потоа најрано на секои 30 минути.
+var QUIZ_EVERY = 30 * 60000, quiz = null;
+function quizFree() { return !msgBusy && !$('umsg').classList.contains('on') && !document.querySelector('.screen.open') && !$('quiz').classList.contains('on') && document.visibilityState === 'visible'; }
+function quizStart() {
+  var r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
+  quiz = { a: r(), b: r(), tries: 0 }; $('qq').textContent = quiz.a + ' × ' + quiz.b + ' = ?';
+  $('qin').value = ''; $('qmsg').textContent = ''; $('qmsg').className = 'qmsg'; $('qwin').innerHTML = ''; $('qok').disabled = false; $('qin').disabled = false;
+  $('quiz').classList.add('on'); tone(660, 990, .2, 'triangle', .12); setTimeout(function () { try { $('qin').focus(); } catch (e) {} }, 300);
+}
+function quizEnd() { $('quiz').classList.remove('on'); quiz = null; SV.quizNext = Date.now() + QUIZ_EVERY; save(); home(); }
+$('qok').addEventListener('click', function () {
+  if (!quiz) return; var v = parseInt($('qin').value, 10), m = $('qmsg'); if (isNaN(v)) { m.className = 'qmsg bad'; m.textContent = 'Внеси број 🙂'; return; }
+  audio();
+  if (v === quiz.a * quiz.b) {
+    $('qok').disabled = true; $('qin').disabled = true; m.className = 'qmsg ok'; m.textContent = 'Точно! 🎉 Доби 3 squishies:';
+    var got = []; for (var i = 0; i < 3; i++) { var w = roll(); SV.owned[w.id] = (SV.owned[w.id] || 0) + 1; got.push(w); }
+    SV.quizWins = (SV.quizWins || 0) + 1; save();
+    $('qwin').innerHTML = got.map(function (w, k) { return '<img src="' + thumb(w) + '" title="' + w.name + '" style="animation-delay:' + k * .15 + 's">'; }).join('');
+    party('Correct! Three squishies!'); setTimeout(quizEnd, 4500);
+  } else {
+    quiz.tries++; var bx = $('qbox'); bx.classList.remove('shake'); void bx.offsetWidth; bx.classList.add('shake'); tone(220, 140, .25, 'sawtooth', .08);
+    if (quiz.tries >= 3) { m.className = 'qmsg bad'; m.textContent = 'Не е точно. Одговорот е ' + quiz.a * quiz.b + '. Следниот пат! 💪'; $('qok').disabled = true; setTimeout(quizEnd, 3000); }
+    else { m.className = 'qmsg bad'; m.textContent = 'Не е точно, обиди се пак (' + (3 - quiz.tries) + ' обиди)'; $('qin').select(); }
+  }
+});
+$('qin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('qok').click(); });
+$('qlater').addEventListener('click', function () { $('quiz').classList.remove('on'); quiz = null; SV.quizNext = Date.now() + 10 * 60000; save(); });
+var quizT0 = Date.now();
+setInterval(function () { if (!myHash() || Date.now() - quizT0 < 25000 || (SV.quizNext || 0) > Date.now() || !quizFree()) return; quizStart(); }, 3000);
 function alarmSound() {   // „аларм“: три сирени нагоре-надолу + ѕвонче
   for (var k = 0; k < 3; k++) { tone(520, 1250, .28, 'sawtooth', .05, k * .5); tone(1250, 520, .22, 'sawtooth', .05, k * .5 + .28); tone(520, 1250, .28, 'square', .025, k * .5); }
   [1568, 2093, 2637].forEach(function (f, k) { tone(f, f, .5, 'triangle', .1, 1.5 + k * .07); });
