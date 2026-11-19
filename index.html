@@ -394,6 +394,11 @@ var V = [
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'thunderhero', name: 'Thundermans', rar: 'legend', face: 'hero', hero: 1, fx: 'hero', sfx: 'hero', mat: 'gel', glow: '#ffe14d', c: ['#9fd8ff', '#2f6fe0', '#0b2a8a'] },
+  { id: 'snowball1', name: 'Снежна топка', rar: 'epic', shape: 'ball', snowy: 1, mat: 'crunch', face: 'snowcute', glow: '#cfe8ff', c: ['#ffffff', '#eef6ff', '#a9c4e6'] },
+  { id: 'globe3', name: 'Ирваче во шума', rar: 'legend', shape: 'ball', globe: 1, scene: 'deer', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
+  { id: 'globe4', name: 'Лизгалиште', rar: 'legend', shape: 'ball', globe: 1, scene: 'skate', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
+  { id: 'globe5', name: 'Ноќ под ѕвезди', rar: 'legend', shape: 'ball', globe: 1, scene: 'night', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#e6ecff', '#9fb0ff', '#3a3f9a'], a: .22, glow: '#9fb0ff' },
+  { id: 'globe6', name: 'Подароци под елка', rar: 'legend', shape: 'ball', globe: 1, scene: 'gifts', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#ffd23f' },
   { id: 'globe2', name: 'Зимско селце', rar: 'legend', shape: 'ball', globe: 1, scene: 'village', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
@@ -659,6 +664,10 @@ function band(g, B, from, to, t, col, w, zig) { g.beginPath(); for (var i = 0; i
 function star(g, p, r, c) { g.fillStyle = c; g.beginPath(); for (var k = 0; k < 10; k++) { var ra = k % 2 ? r * .45 : r, an = k * .6283 - 1.5708; k ? g.lineTo(p.x + Math.cos(an) * ra, p.y + Math.sin(an) * ra) : g.moveTo(p.x + Math.cos(an) * ra, p.y + Math.sin(an) * ra); } g.fill(); }
 function tri(g, p, s, c) { s *= 1.35; g.fillStyle = c; g.beginPath(); g.moveTo(p.x, p.y - s); g.lineTo(p.x + s, p.y + s * .8); g.lineTo(p.x - s, p.y + s * .8); g.fill(); }
 var FACE = {
+  snowcute: function (g, B, a, b, m) {   // затворени насмеани очи, мала уста, сини образи
+    [a, b].forEach(function (e) { g.strokeStyle = '#2a3a5a'; g.lineWidth = 3.5; g.lineCap = 'round'; g.beginPath(); g.arc(e.x, e.y + 5, 9, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); });
+    g.fillStyle = '#2a3a5a'; g.beginPath(); g.moveTo(m.x - 7, m.y - 2); g.quadraticCurveTo(m.x, m.y + 10, m.x + 7, m.y - 2); g.closePath(); g.fill();
+    g.fillStyle = '#ff8fa8'; g.beginPath(); g.ellipse(m.x, m.y + 3, 3.5, 2, 0, 0, 6.3); g.fill(); cheeks(g, B, '#9ec8ff'); },
   hero: function (g, B, a, b, m) {
     var L = a.x < b.x ? a : b, R = a.x < b.x ? b : a, my = (L.y + R.y) / 2, mx = (L.x + R.x) / 2;
     var mk = g.createLinearGradient(0, my - 16, 0, my + 16); mk.addColorStop(0, '#ff3b4f'); mk.addColorStop(1, '#9a0f22');
@@ -780,6 +789,40 @@ function globeScene(g, v, cx, cy, R, time) {   // сцена во топката
   var s = R / 108, i;
   g.save(); g.translate(cx, cy); g.scale(s, s);
   g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(0, 96, 120, 36, 0, 0, 6.3); g.fill();   // снег на дното
+  if (v.scene === 'deer') {   // ирваче во шума
+    [[-75, 40, .9], [72, 36, .8], [40, 60, .55], [-40, 66, .5]].forEach(function (t) { var k = t[2]; for (var l = 0; l < 3; l++) { g.fillStyle = '#1f7a40'; g.beginPath(); g.moveTo(t[0], t[1] - 80 * k + l * 24 * k); g.lineTo(t[0] + (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.lineTo(t[0] - (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.closePath(); g.fill();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(t[0], t[1] - 44 * k + l * 24 * k, (18 + l * 8) * k, 3 * k, 0, 0, 6.3); g.fill(); } });
+    g.fillStyle = '#a8642e'; g.beginPath(); g.ellipse(0, 56, 30, 17, 0, 0, 6.3); g.fill();   // тело
+    g.fillRect(-22, 62, 6, 22); g.fillRect(-10, 64, 6, 20); g.fillRect(8, 64, 6, 20); g.fillRect(18, 62, 6, 22);
+    g.beginPath(); g.ellipse(28, 34, 13, 11, -.3, 0, 6.3); g.fill(); g.fillRect(20, 38, 10, 16);   // глава и врат
+    g.fillStyle = '#f2e0c8'; g.beginPath(); g.ellipse(36, 37, 6, 5, 0, 0, 6.3); g.fill(); dot(g, { x: 40, y: 36 }, 3.2, '#e8324a');
+    dot(g, { x: 28, y: 31 }, 2.2, '#16121f'); g.strokeStyle = '#6b3d1a'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(24, 24); g.lineTo(18, 6); g.moveTo(21, 16); g.lineTo(12, 12); g.moveTo(30, 24); g.lineTo(36, 6); g.moveTo(33, 15); g.lineTo(42, 10); g.stroke();
+    dot(g, { x: -28, y: 52 }, 5, '#f2e0c8');
+  } else if (v.scene === 'skate') {   // лизгалиште со мали кнедли
+    g.fillStyle = '#bfe6ff'; g.beginPath(); g.ellipse(0, 62, 92, 26, 0, 0, 6.3); g.fill(); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(-10, 60, 50, 10, .1, 0, 3.5); g.stroke(); g.beginPath(); g.ellipse(20, 66, 40, 8, -.1, 3, 6); g.stroke();
+    [[-36, 40, '#ffd0e0', '#e8324a', -.2], [30, 36, '#d6f0ff', '#2f6fe0', .25]].forEach(function (k) { var x = k[0] + Math.sin(time * 1.5) * 8 * (k[4] > 0 ? 1 : -1), y = k[1];
+      g.fillStyle = k[2]; g.beginPath(); g.moveTo(x - 20, y + 14); g.quadraticCurveTo(x - 22, y - 16, x, y - 18); g.quadraticCurveTo(x + 22, y - 16, x + 20, y + 14); g.closePath(); g.fill();
+      dot(g, { x: x - 6, y: y - 2 }, 2.2, '#16121f'); dot(g, { x: x + 6, y: y - 2 }, 2.2, '#16121f'); g.strokeStyle = '#16121f'; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y + 2, 4, .3, 2.8); g.stroke();
+      g.strokeStyle = k[3]; g.lineWidth = 5; g.beginPath(); g.moveTo(x - 18, y + 6); g.lineTo(x + 18, y + 6); g.stroke();   // шал
+      g.strokeStyle = '#c9d6e6'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x - 14, y + 20); g.lineTo(x - 2, y + 20); g.moveTo(x + 4, y + 20); g.lineTo(x + 16, y + 20); g.stroke(); });
+    [[-80, -10], [80, -14]].forEach(function (t) { g.fillStyle = '#1f7a40'; g.beginPath(); g.moveTo(t[0], t[1] - 40); g.lineTo(t[0] + 20, t[1] + 10); g.lineTo(t[0] - 20, t[1] + 10); g.closePath(); g.fill(); });
+  } else if (v.scene === 'night') {   // ноќ: месечина, ѕвезди, куќички
+    var ng = g.createLinearGradient(0, -108, 0, 60); ng.addColorStop(0, '#0b1240'); ng.addColorStop(1, '#3a3f9a'); g.fillStyle = ng; g.beginPath(); g.arc(0, 0, 108, Math.PI, 0); g.lineTo(108, 60); g.lineTo(-108, 60); g.closePath(); g.fill();
+    dot(g, { x: 40, y: -55 }, 22, '#fff3b0'); dot(g, { x: 50, y: -62 }, 20, '#20286a');   // полумесечина
+    for (var ni = 0; ni < 14; ni++) { g.globalAlpha = .5 + .5 * Math.abs(Math.sin(time * 2 + ni)); star(g, { x: -90 + (ni * 53) % 170, y: -90 + (ni * 37) % 110 }, 2.5 + ni % 3, '#ffffff'); } g.globalAlpha = 1;
+    [[-60, 30, 36], [-14, 22, 44], [36, 34, 32]].forEach(function (h) { g.fillStyle = '#2a2550'; g.fillRect(h[0], h[1], h[2], 40); g.beginPath(); g.moveTo(h[0] - 4, h[1] + 2); g.lineTo(h[0] + h[2] / 2, h[1] - 20); g.lineTo(h[0] + h[2] + 4, h[1] + 2); g.closePath(); g.fill();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(h[0] - 5, h[1] + 3); g.quadraticCurveTo(h[0] + h[2] / 2, h[1] - 26, h[0] + h[2] + 5, h[1] + 3); g.quadraticCurveTo(h[0] + h[2] / 2, h[1] - 8, h[0] - 5, h[1] + 3); g.fill();
+      g.fillStyle = '#ffd86b'; g.globalAlpha = .7 + .3 * Math.sin(time * 3 + h[0]); g.fillRect(h[0] + h[2] / 2 - 6, h[1] + 12, 12, 10); g.globalAlpha = 1; });
+  } else if (v.scene === 'gifts') {   // подароци под елка
+    g.fillStyle = '#1f7a40'; for (var gl = 0; gl < 4; gl++) { g.beginPath(); g.moveTo(0, -92 + gl * 30); g.lineTo(26 + gl * 14, -54 + gl * 30); g.lineTo(-26 - gl * 14, -54 + gl * 30); g.closePath(); g.fill(); }
+    star(g, { x: 0, y: -94 }, 12, '#ffd23f'); g.fillStyle = '#6b3d1a'; g.fillRect(-7, 36, 14, 12);
+    ['#e8324a', '#ffd23f', '#4da3ff', '#ff7ab0', '#3fd27a', '#c97bff', '#ffffff', '#ff8a1f'].forEach(function (c, k) { g.globalAlpha = .5 + .5 * Math.abs(Math.sin(time * 3 + k)); dot(g, { x: (k % 2 ? 1 : -1) * (12 + k * 5), y: -70 + k * 13 }, 4, c); }); g.globalAlpha = 1;
+    [[-62, 50, 30, 26, '#e8324a', '#ffd23f'], [-26, 58, 24, 20, '#4da3ff', '#ffffff'], [20, 52, 34, 28, '#3fd27a', '#e8324a'], [58, 60, 24, 20, '#c97bff', '#ffd23f']].forEach(function (b) {
+      g.fillStyle = b[4]; g.fillRect(b[0], b[1], b[2], b[3]); g.fillStyle = b[5]; g.fillRect(b[0] + b[2] / 2 - 3, b[1], 6, b[3]); g.fillRect(b[0], b[1] + b[3] / 2 - 3, b[2], 6);
+      dot(g, { x: b[0] + b[2] / 2 - 5, y: b[1] - 3 }, 5, b[5]); dot(g, { x: b[0] + b[2] / 2 + 5, y: b[1] - 3 }, 5, b[5]); });
+  } else
   if (v.scene === 'village') {   // зимско селце: елки, куќичка со светло прозорче, снешко-кнедла
     [[-70, 30, 1], [70, 36, .8], [-30, 50, .6]].forEach(function (t) { var k = t[2]; g.fillStyle = '#2f8a4e'; for (var l = 0; l < 3; l++) { g.beginPath(); g.moveTo(t[0], t[1] - 80 * k + l * 24 * k); g.lineTo(t[0] + (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.lineTo(t[0] - (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.closePath(); g.fill();
       g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(t[0], t[1] - 44 * k + l * 24 * k, (18 + l * 8) * k, 3 * k, 0, 0, 6.3); g.fill(); g.fillStyle = '#2f8a4e'; } g.fillStyle = '#6b3d1a'; g.fillRect(t[0] - 4 * k, t[1] + 32 * k - 30 * k, 8 * k, 14 * k); });
@@ -960,6 +1003,10 @@ function draw(g, P, v, time) {
   if (v.photo) { var im = photoImg(v.photo); if (im.complete && im.naturalWidth) g.drawImage(im, minX, minY, maxX - minX, maxY - minY); }   // фотографијата се растегнува со телото
   if (v.globe) globeScene(g, v, cx, cy, (maxX - minX) / 2, time);
   if (v.xdeco) treeDeco(g, B, time);
+  if (v.snowy) { var sr = rng(91);   // снежна текстура: грутки, сини сенки и ледени искри
+    for (var sk = 0; sk < 70; sk++) { var sp = B(sr() * N, .15 + sr() * .82), ss = 4 + sr() * 9; g.fillStyle = 'rgba(160,190,230,' + (.12 + sr() * .18) + ')'; g.beginPath(); g.ellipse(sp.x + 2, sp.y + 2, ss, ss * .7, sr() * 3, 0, 6.3); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(sp.x - 1, sp.y - 1, ss * .8, ss * .55, sr() * 3, 0, 6.3); g.fill(); }
+    for (sk = 0; sk < 26; sk++) { var gp = B(sr() * N, sr() * .95); g.globalAlpha = .4 + .6 * Math.abs(Math.sin(time * 2.5 + sk)); star(g, gp, 2.5 + sr() * 3, sk % 3 ? '#ffffff' : '#bfe6ff'); } g.globalAlpha = 1; }
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   if (v.pat) PAT[v.pat](g, B, v, rng(hash(v.id) + 7), minX, minY, maxX, maxY);
   if (v.inner) innerItems(g, B, v);
@@ -1653,7 +1700,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-20';
+var APP_VER = '2026-11-19-21';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
