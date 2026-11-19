@@ -228,7 +228,7 @@
     </div>
   </div>
   <div class="quiz" id="quiz"><div class="qbox" id="qbox">
-    <div class="qt">🧮 Реши ја задачата и добиј 3 squishies!</div>
+    <div class="qt" id="qt">🧮 Реши ја задачата и добиј 3 squishies!</div>
     <div class="qq" id="qq"></div>
     <input id="qin" type="number" inputmode="numeric" placeholder="Твој одговор" autocomplete="off">
     <div class="qbtns"><button id="qok">Провери</button><button id="qlater" class="alt">Подоцна</button></div>
@@ -1496,7 +1496,8 @@ var SP_CHANCE = .4;   // шанса Special Box да даде Special Edition (�
 function spRoll() { var all = V.filter(function (v) { return v.rar === 'sped'; }), nw = all.filter(function (v) { return !SV.owned[v.id]; });
   if (Math.random() < SP_CHANCE) return any(nw.length ? nw : all);
   return any(V.filter(function (v) { return (v.rar === 'epic' || v.rar === 'legend' || v.rar === 'special') && !v.advent && !v.season && !v.only; })); }
-$('spBtn').addEventListener('click', function () {
+$('spBtn').addEventListener('click', function () { if (SV.sboxes) quizStart('sbox'); });   // услов: реши задача
+function openSpecialBox() {
   if (!SV.sboxes) return; audio(); SV.sboxes--; prizeV = spRoll(); taps = 0;
   var o = $('open'), r = RAR[prizeV.rar]; o.className = 'screen open'; o.style.setProperty('--rc', '#ff7bd5');
   $('box').className = 'box spbox'; $('prize').src = thumb(prizeV); $('tapHint').textContent = 'Допри ја специјалната кошничка 3 пати ✨';
@@ -1504,7 +1505,7 @@ $('spBtn').addEventListener('click', function () {
   $('rRar').textContent = r.n; $('rRar').className = 'rl' + (prizeV.rar === 'sped' ? ' sped' : prizeV.rar === 'ooak' ? ' ooak' : ''); $('rName').textContent = prizeV.name;
   $('rNew').textContent = isNew ? (prizeV.rar === 'sped' ? 'Нова во Special Edition колекцијата! ✨' : 'Нова во колекцијата!') : 'Дупликат · имаш ×' + SV.owned[prizeV.id];
   [784, 988, 1175].forEach(function (f, k) { tone(f, f, .3, 'triangle', .1, k * .1); });
-});
+}
 $('box').addEventListener('click', function () {
   if (!prizeV || taps >= 3) return; taps++; var bx = $('box'), o = $('open'), r = RAR[prizeV.rar], tier = ORDER.indexOf(prizeV.rar);
   bx.classList.remove('s1', 's2'); void bx.offsetWidth;
@@ -1567,7 +1568,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-6';
+var APP_VER = '2026-11-19-7';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1619,9 +1620,10 @@ var msgBusy = false;
 // Се појавува на почетниот екран: прв пат ~25 с по отворање, потоа најрано на секои 30 минути.
 var QUIZ_EVERY = 30 * 60000, quiz = null;
 function quizFree() { return !msgBusy && !$('umsg').classList.contains('on') && !document.querySelector('.screen.open') && !$('quiz').classList.contains('on') && document.visibilityState === 'visible'; }
-function quizStart() {
+function quizStart(kind) {
   var r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
-  var one = 2 + Math.floor(Math.random() * 8), two = r(); quiz = Math.random() < .5 ? { a: two, b: one, tries: 0 } : { a: one, b: two, tries: 0 };   // двоцифрен × едноцифрен (2–9)
+  var one = 2 + Math.floor(Math.random() * 8), two = r(); quiz = Math.random() < .5 ? { a: two, b: one, tries: 0 } : { a: one, b: two, tries: 0 }; quiz.kind = kind || 'reward';   // двоцифрен × едноцифрен (2–9)
+  $('qt').textContent = quiz.kind === 'sbox' ? '🧺 Реши ја задачата за да ја отвориш Special Box!' : '🧮 Реши ја задачата и добиј 3 squishies!';
   $('qq').textContent = quiz.a + ' × ' + quiz.b + ' = ?';
   $('qin').value = ''; $('qmsg').textContent = ''; $('qmsg').className = 'qmsg'; $('qwin').innerHTML = ''; $('qok').disabled = false; $('qin').disabled = false;
   $('quiz').classList.add('on'); tone(660, 990, .2, 'triangle', .12); setTimeout(function () { try { $('qin').focus(); } catch (e) {} }, 300);
@@ -1631,19 +1633,24 @@ $('qok').addEventListener('click', function () {
   if (!quiz) return; var v = parseInt($('qin').value, 10), m = $('qmsg'); if (isNaN(v)) { m.className = 'qmsg bad'; m.textContent = 'Внеси број 🙂'; return; }
   audio();
   if (v === quiz.a * quiz.b) {
-    $('qok').disabled = true; $('qin').disabled = true; m.className = 'qmsg ok'; m.textContent = 'Точно! 🎉 Доби 3 squishies:';
+    $('qok').disabled = true; $('qin').disabled = true;
+    if (quiz.kind === 'sbox') { m.className = 'qmsg ok'; m.textContent = 'Точно! 🎉 Се отвора Special Box…'; tone(784, 1568, .3, 'triangle', .12);
+      setTimeout(function () { $('quiz').classList.remove('on'); quiz = null; openSpecialBox(); }, 1100); return; }
+    m.className = 'qmsg ok'; m.textContent = 'Точно! 🎉 Доби 3 squishies:';
     var got = []; for (var i = 0; i < 3; i++) { var w = roll(); SV.owned[w.id] = (SV.owned[w.id] || 0) + 1; got.push(w); }
     SV.quizWins = (SV.quizWins || 0) + 1; save();
     $('qwin').innerHTML = got.map(function (w, k) { return '<img src="' + thumb(w) + '" title="' + w.name + '" style="animation-delay:' + k * .15 + 's">'; }).join('');
     party('Correct! Three squishies!'); setTimeout(quizEnd, 4500);
   } else {
     quiz.tries++; var bx = $('qbox'); bx.classList.remove('shake'); void bx.offsetWidth; bx.classList.add('shake'); tone(220, 140, .25, 'sawtooth', .08);
-    if (quiz.tries >= 3) { m.className = 'qmsg bad'; m.textContent = 'Не е точно. Одговорот е ' + quiz.a * quiz.b + '. Следниот пат! 💪'; $('qok').disabled = true; setTimeout(quizEnd, 3000); }
+    if (quiz.tries >= 3) { m.className = 'qmsg bad'; $('qok').disabled = true;
+      if (quiz.kind === 'sbox') { m.textContent = 'Не е точно (' + quiz.a * quiz.b + '). Кутијата те чека, пробај пак! 💪'; setTimeout(function () { $('quiz').classList.remove('on'); quiz = null; }, 3000); }
+      else { m.textContent = 'Не е точно. Одговорот е ' + quiz.a * quiz.b + '. Следниот пат! 💪'; setTimeout(quizEnd, 3000); } }
     else { m.className = 'qmsg bad'; m.textContent = 'Не е точно, обиди се пак (' + (3 - quiz.tries) + ' обиди)'; $('qin').select(); }
   }
 });
 $('qin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('qok').click(); });
-$('qlater').addEventListener('click', function () { $('quiz').classList.remove('on'); quiz = null; SV.quizNext = Date.now() + 10 * 60000; save(); });
+$('qlater').addEventListener('click', function () { var sb = quiz && quiz.kind === 'sbox'; $('quiz').classList.remove('on'); quiz = null; if (!sb) { SV.quizNext = Date.now() + 10 * 60000; save(); } });
 var quizT0 = Date.now();
 setInterval(function () { if (!myHash() || Date.now() - quizT0 < 25000 || (SV.quizNext || 0) > Date.now() || !quizFree()) return; quizStart(); }, 3000);
 function alarmSound() {   // „аларм“: три сирени нагоре-надолу + ѕвонче
