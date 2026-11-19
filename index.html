@@ -408,7 +408,7 @@ var V = [
   { id: 'crcandy', name: 'Шеќерни кристали', rar: 'epic', mat: 'crunch', c: ['#fff0fa', '#ffb8e6', '#d070b8'], a: .5, rock: ['#ff7ab0', '#7fd0ff', '#ffe14d', '#b56bff', '#7dffb0'], gl: ['#ffffff'], gn: 20 },
   { id: 'popit', name: 'Pop It виножито', rar: 'vrare', shape: 'ball', popit: 1, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
   { id: 'popit2', name: 'Pop It пастел', rar: 'rare', shape: 'ball', popit: 2, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
-  { id: 'poopfly', name: 'Смрдливко со мува', rar: 'golden', shape: 'poop', noface: 1, top: ['googly'], flies: 1, sfx: 'buzz', mat: 'gel', c: ['#c99a6a', '#8a5a2e', '#4a2c12'], a: .62, gl: ['#fff3c6'], gn: 10, glow: '#9a7a3a' },
+  { id: 'poopfly', name: 'Смрдливко со мува', rar: 'golden', only: ['ba3a575a3084439b', '069496a50bd67643', 'b52e5dd3c48122c0', '90777e2c48f5d351', '60413f9f4bff966c'], shape: 'poop', noface: 1, top: ['googly'], flies: 1, sfx: 'buzz', mat: 'gel', c: ['#c99a6a', '#8a5a2e', '#4a2c12'], a: .62, gl: ['#fff3c6'], gn: 10, glow: '#9a7a3a' },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -1687,7 +1687,7 @@ function roll() {
   for (var i = 0; i < ORDER.length; i++) { acc += w[ORDER[i]]; if (x < acc) { rar = ORDER[i]; break; } }
   if (rar === 'ooak' && !SV.owned.tennis) return byId('tennis');   // првиот One of a Kind секогаш е тенискиот
   if (rar === 'ooak') { var u = { seed: Math.floor(Math.random() * 1e9), serial: Math.floor(Math.random() * 9999) + 1 }; SV.uniq.push(u); return uniqueVariant(u); }
-  var pool = V.filter(function (v) { return v.rar === rar && !v.advent; }); return pool[Math.floor(Math.random() * pool.length)];
+  var pool = V.filter(function (v) { return v.rar === rar && !v.advent && canHave(v); }); return pool[Math.floor(Math.random() * pool.length)];
 }
 $('boxBtn').addEventListener('click', function () {
   if (!SV.boxes) return; audio(); SV.boxes--; SV.opens = (SV.opens || 0) + 1; prizeV = roll(); taps = 0;
@@ -1776,7 +1776,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-26';
+var APP_VER = '2026-11-19-27';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1804,6 +1804,8 @@ var MESSAGES = [
   { id: 'gift-wilma-nadja', to: 'ba3a575a3084439b', text: 'Подарок само за тебе! 🎾 Доби WilmaWilson!', times: 1, sec: 5, blink: 1, vib: 1, give: ['wilma'], party: 1, partySay: 'Wilma Wilson! Only for you!' },
   { id: 'gift-wilma-dea', to: '069496a50bd67643', text: 'Подарок само за тебе! 🎾 Доби WilmaWilson!', times: 1, sec: 5, blink: 1, vib: 1, give: ['wilma'], party: 1, partySay: 'Wilma Wilson! Only for you!' },
   { id: 'test-thundermans-1', to: 'c6267e36b14de7e5', text: 'Тест: следната Mystery Box крие Thundermans ⚡ (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['thunderhero'] },   // C6267E (тест)
+  { id: 'poop-nadja', to: 'ba3a575a3084439b', text: 'Изненадување во следната кутија… 💩🪰 (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['poopfly'] },
+  { id: 'poop-dea', to: '069496a50bd67643', text: 'Изненадување во следната кутија… 💩🪰 (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['poopfly'] },
   { id: 'nadja-treat-5', to: '*', text: 'Надја части 5 кутии! 🎁🎉', times: 1, sec: 5, boxes: 5, party: 1 }   // до СИТЕ корисници
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
