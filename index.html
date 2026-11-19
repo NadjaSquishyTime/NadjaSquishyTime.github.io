@@ -217,7 +217,7 @@
   .gsq { border: 0; background: none; width: 230px; } .gsq img { width: 100%; } .gsq.pr { animation: gpress .15s; } @keyframes gpress { 50% { transform: scale(.85, .78); } }
   .grx { width: 100%; height: 260px; border: 0; border-radius: 22px; font-size: 26px; font-weight: 900; color: #fff; background: #2e2650; } .grx.red { background: #c81e3a; } .grx.green { background: #1fae5a; }
   .gin { width: 100%; box-sizing: border-box; font-size: 26px; text-align: center; padding: 10px; border-radius: 14px; border: 2px solid #6a4bb0; background: #120d22; color: #fff; margin-bottom: 6px; }
-  .gpop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px; border-radius: 22px; background: #2a2346; }
+  .gpop { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; padding: 12px; border-radius: 22px; background: #2a2346; }
   .gpop button { aspect-ratio: 1; border: 0; border-radius: 50%; box-shadow: inset -5px -6px 0 rgba(0,0,0,.22), inset 5px 5px 0 rgba(255,255,255,.45); } .gpop button.on { box-shadow: inset 5px 6px 8px rgba(0,0,0,.4); filter: brightness(.85); }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
@@ -1808,7 +1808,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-30';
+var APP_VER = '2026-11-19-31';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1831,7 +1831,7 @@ var GAMES = [
   { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 45 пати за 15 секунди' },
   { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 450 ms' },
   { id: 'math', n: '🧮 Математички маратон', d: '8 точни задачи за 60 секунди' },
-  { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 24 меурчиња за 10 секунди' },
+  { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 36 меурчиња за 9 секунди' },
   { id: 'feed', n: '🎯 Нахрани го squishy-то', d: '6 погодоци од 10 бонбони' }
 ];
 var gTimer = null, gRaf = null;
@@ -1913,10 +1913,10 @@ var G = {
     gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 8'); if (t <= 0) gEnd('math', ok >= 8, ok + ' точни задачи за 60 секунди.', ok); }, 1000);
   },
   pop: function () {   // 24 меурчиња за 10 секунди
-    var left = 24, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 24!');
-    for (var i = 0; i < 24; i++) { var b = document.createElement('button'); b.style.background = cols[Math.floor(i / 4)]; grid.appendChild(b);
-      b.onpointerdown = function () { if (this.classList.contains('on')) return; if (!t0) { t0 = performance.now(); gTimer = setInterval(function () { var s = (performance.now() - t0) / 1000; gHud('⏱ ' + s.toFixed(1) + ' s · уште ' + left); if (s > 10) gEnd('pop', false, 'Времето истече! Остануваат ' + left + '.'); }, 100); }
-        this.classList.add('on'); left--; popSound(); if (!left) { var s = Math.round((performance.now() - t0) / 100) / 10; gEnd('pop', s <= 10, 'Ги пукна сите за ' + s + ' s.', s, true); } }; }
+    var LIM = 9, left = 36, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 36 за ' + LIM + ' s!');
+    for (var i = 0; i < 36; i++) { var b = document.createElement('button'); b.style.background = cols[Math.floor(i / 6)]; grid.appendChild(b);
+      b.onpointerdown = function () { if (this.classList.contains('on')) return; if (!t0) { t0 = performance.now(); gTimer = setInterval(function () { var s = (performance.now() - t0) / 1000; gHud('⏱ ' + s.toFixed(1) + ' s · уште ' + left); if (s > LIM) gEnd('pop', false, 'Времето истече! Остануваат ' + left + '.'); }, 100); }
+        this.classList.add('on'); left--; popSound(); if (!left) { var s = Math.round((performance.now() - t0) / 100) / 10; gEnd('pop', s <= LIM, 'Ги пукна сите за ' + s + ' s.', s, true); } }; }
   },
   feed: function () {   // squishy со уста се движи горе, фрлај бонбони
     var C = gCanvas(440), mx = C.W / 2, dir = 1, shots = 10, hits = 0, candy = null, last = performance.now(), v = any(gPool()), im = gImg(v), msg = '';
