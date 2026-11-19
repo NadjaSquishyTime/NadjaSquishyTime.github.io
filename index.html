@@ -204,6 +204,21 @@
   @keyframes introfloat { 50% { transform: translateY(-6px); } }
   #lock .codein { background: #fff; color: #4a2a6a; border-color: #d6b8ff; }
   #lock .err { color: #d12a5a; }
+  .boxbtn.gm { margin-top: 10px; background: linear-gradient(120deg, #1f6fe0, #3aa7ff 50%, #7a3cff); }
+  .garea { width: min(380px, 94vw); margin: 6px auto 0; text-align: center; overflow-y: auto; max-height: calc(100vh - 140px); }
+  .gcard { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 12px 14px; border: 0; border-radius: 16px; background: #221c3a; color: #fff; }
+  .gcard b { display: block; font-size: 16px; } .gcard small { color: #a9a3c2; font-size: 12.5px; }
+  .ghud { margin: 4px 0 10px; font-weight: 800; color: #ffd23f; min-height: 20px; }
+  .gcv { display: block; margin: 0 auto; border-radius: 18px; background: linear-gradient(#20183a, #120d22); touch-action: none; }
+  .gres { padding: 24px 10px; font-size: 26px; font-weight: 900; } .gres p { font-size: 15px; font-weight: 600; color: #ddd6f5; }
+  .gbtn { padding: 12px 20px; margin: 6px 4px; border: 0; border-radius: 14px; font-weight: 800; font-size: 16px; background: linear-gradient(120deg, #7a3cff, #ff7bb0); color: #fff; } .gbtn.alt { background: #2e2650; }
+  .gmem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .gmc { aspect-ratio: 1; border: 0; border-radius: 12px; background: linear-gradient(135deg, #7a3cff, #ff7bb0); padding: 4px; } .gmc img { width: 100%; opacity: 0; transition: .2s; } .gmc.on { background: #2a2346; } .gmc.on img { opacity: 1; }
+  .gsq { border: 0; background: none; width: 230px; } .gsq img { width: 100%; } .gsq.pr { animation: gpress .15s; } @keyframes gpress { 50% { transform: scale(.85, .78); } }
+  .grx { width: 100%; height: 260px; border: 0; border-radius: 22px; font-size: 26px; font-weight: 900; color: #fff; background: #2e2650; } .grx.red { background: #c81e3a; } .grx.green { background: #1fae5a; }
+  .gin { width: 100%; box-sizing: border-box; font-size: 26px; text-align: center; padding: 10px; border-radius: 14px; border: 2px solid #6a4bb0; background: #120d22; color: #fff; margin-bottom: 6px; }
+  .gpop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px; border-radius: 22px; background: #2a2346; }
+  .gpop button { aspect-ratio: 1; border: 0; border-radius: 50%; box-shadow: inset -5px -6px 0 rgba(0,0,0,.22), inset 5px 5px 0 rgba(255,255,255,.45); } .gpop button.on { box-shadow: inset 5px 6px 8px rgba(0,0,0,.4); filter: brightness(.85); }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -215,6 +230,7 @@
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn sp" id="spBtn"><div class="ico">🧺</div><div><b>Special Box ✨</b><small id="spN"></small></div></button>
+    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>7 игри · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
     <button class="boxbtn tr" id="trBtn"><div class="ico">⇄</div><div><b>Размена</b><small>Испрати или прими кнедла од пријател</small></div></button>
     <div class="prog"><span id="progT"></span><button id="oddsBtn">Шанси</button></div>
@@ -233,6 +249,10 @@
       <div class="stat"><span>Стисоци</span><b id="pCnt">0</b></div>
       <div class="stat"><span>Притисок</span><div class="bar sq"><i id="meter"></i></div><small id="pHint" class="phint"></small></div>
     </div>
+  </div>
+  <div class="screen" id="games" style="--rc:#3aa7ff">
+    <div class="top"><button class="back" id="gBack">← Назад</button><span class="tag" style="--rc:#3aa7ff">Игри</span></div>
+    <h2 id="gTitle">🎮 Игри</h2><div id="gArea" class="garea"></div>
   </div>
   <div class="quiz" id="quiz"><div class="qbox" id="qbox">
     <div class="qt" id="qt">🧮 Реши ја задачата и добиј 3 squishies!</div>
@@ -1788,7 +1808,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-28';
+var APP_VER = '2026-11-19-29';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1802,6 +1822,118 @@ function checkVersion() {   // ако на серверот има понова 
   }).catch(function () {});
 }
 checkVersion();
+
+// ---------- 🎮 Игри за еден играч ----------
+// Секоја игра има цел; кога ќе се стигне: +2 Mystery Box и +2 Special Box (еднаш дневно по игра).
+var GAMES = [
+  { id: 'catch', n: '🧺 Фати ги кнедлите', d: 'Фати 25 squishies, пази на 💩 (3 животи)' },
+  { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 6-те парови во најмногу 16 обиди' },
+  { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 45 пати за 15 секунди' },
+  { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 450 ms' },
+  { id: 'math', n: '🧮 Математички маратон', d: '8 точни задачи за 60 секунди' },
+  { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 24 меурчиња за 10 секунди' },
+  { id: 'feed', n: '🎯 Нахрани го squishy-то', d: '6 погодоци од 10 бонбони' }
+];
+var gTimer = null, gRaf = null;
+function gStop() { clearInterval(gTimer); gTimer = null; cancelAnimationFrame(gRaf); gRaf = null; }
+function gToday() { return today(); }
+function gWonToday(id) { SV.gameWins = SV.gameWins || {}; return SV.gameWins[id] === gToday(); }
+function gBest(id, val, lower) { SV.gameBest = SV.gameBest || {}; var b = SV.gameBest[id]; if (b === undefined || (lower ? val < b : val > b)) { SV.gameBest[id] = val; save(); return true; } return false; }
+function gEnd(id, won, txt, score, lower) {
+  gStop(); var rec = score !== undefined && gBest(id, score, lower), msg = txt + (rec ? '<br>🏆 Нов рекорд!' : '');
+  if (won && !gWonToday(id)) { SV.gameWins[id] = gToday(); SV.boxes += 2; SV.sboxes = (SV.sboxes || 0) + 2; save(); msg += '<br><b>Награда: +2 Mystery Box и +2 Special Box! 🎁</b>'; party('You win! Two boxes!'); }
+  else if (won) { msg += '<br><small>Наградата за оваа игра ја доби денес. Пробај пак утре!</small>'; [523, 659, 784].forEach(function (f, k) { tone(f, f, .2, 'triangle', .12, k * .1); }); }
+  else tone(300, 160, .35, 'sawtooth', .07);
+  $('gArea').innerHTML = '<div class="gres">' + (won ? '🎉 Браво!' : '😅 Не успеа') + '<p>' + msg + '</p><button class="gbtn" id="gAgain">Пак</button> <button class="gbtn alt" id="gMenu">Други игри</button></div>';
+  $('gAgain').onclick = function () { gPlay(id); }; $('gMenu').onclick = gHome;
+}
+function gHome() {
+  gStop(); $('gTitle').textContent = '🎮 Игри';
+  $('gArea').innerHTML = '<p class="sub" style="margin:0 0 10px">Стигни ја целта → +2 Mystery Box и +2 Special Box (еднаш дневно по игра)</p>' + GAMES.map(function (g) {
+    var b = (SV.gameBest || {})[g.id]; return '<button class="gcard" data-g="' + g.id + '"><b>' + g.n + (gWonToday(g.id) ? ' ✅' : '') + '</b><small>' + g.d + (b !== undefined ? ' · рекорд: ' + b : '') + '</small></button>'; }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('.gcard'), function (b) { b.onclick = function () { gPlay(b.getAttribute('data-g')); }; });
+}
+function gPlay(id) { gStop(); audio(); var g = GAMES.filter(function (x) { return x.id === id; })[0]; $('gTitle').textContent = g.n; $('gArea').innerHTML = ''; G[id](); }
+function gPool() { return V.filter(function (v) { return !v.only && !v.card && !v.advent && !v.season; }); }
+function gCanvas(h) { var c = document.createElement('canvas'), W = Math.min(360, window.innerWidth - 32); c.width = W * 2; c.height = h * 2; c.style.width = W + 'px'; c.style.height = h + 'px'; c.className = 'gcv'; $('gArea').appendChild(c); var x = c.getContext('2d'); x.scale(2, 2); return { c: c, g: x, W: W, H: h }; }
+function gHud(t) { var d = $('gHud'); if (!d) { d = document.createElement('div'); d.id = 'gHud'; d.className = 'ghud'; $('gArea').insertBefore(d, $('gArea').firstChild); } d.innerHTML = t; }
+function gImg(v) { var im = new Image(); im.src = thumb(v); return im; }
+var G = {
+  catch: function () {   // кошничка лево-десно, фаќај squishies, избегнувај 💩
+    var C = gCanvas(440), bx = C.W / 2, items = [], caught = 0, lives = 3, t0 = performance.now(), last = t0, pool = gPool().slice(0, 40), imgs = {};
+    var move = function (e) { var r = C.c.getBoundingClientRect(); bx = clamp((e.touches ? e.touches[0].clientX : e.clientX) - r.left, 30, C.W - 30); };
+    C.c.addEventListener('pointermove', move); C.c.addEventListener('pointerdown', move); C.c.addEventListener('touchmove', function (e) { e.preventDefault(); move(e); }, { passive: false });
+    (function loop(now) { var dt = Math.min(.05, (now - last) / 1000); last = now; var el = (now - t0) / 1000, g = C.g;
+      if (Math.random() < dt * (1.2 + el * .04)) { var bad = Math.random() < .22, v = any(pool); if (!bad && !imgs[v.id]) imgs[v.id] = gImg(v); items.push({ x: 20 + Math.random() * (C.W - 40), y: -30, vy: 90 + el * 4 + Math.random() * 60, bad: bad, v: v }); }
+      g.clearRect(0, 0, C.W, C.H);
+      items.forEach(function (it) { it.y += it.vy * dt;
+        if (it.bad) { g.font = '34px system-ui'; g.textAlign = 'center'; g.fillText('💩', it.x, it.y + 12); } else if (imgs[it.v.id].complete) g.drawImage(imgs[it.v.id], it.x - 26, it.y - 24, 52, 47);
+        if (!it.done && it.y > C.H - 60 && it.y < C.H - 20 && Math.abs(it.x - bx) < 44) { it.done = 1; if (it.bad) { lives--; tone(200, 90, .3, 'sawtooth', .1); if (navigator.vibrate) navigator.vibrate(80); } else { caught++; fizz(0, .1); tone(880, 1320, .08, 'triangle', .08); } } });
+      items = items.filter(function (it) { return !it.done && it.y < C.H + 40; });
+      g.fillStyle = '#e9c891'; g.beginPath(); g.roundRect(bx - 42, C.H - 44, 84, 34, [6, 6, 16, 16]); g.fill(); g.strokeStyle = '#c99a5c'; g.lineWidth = 3; g.stroke();
+      g.strokeStyle = 'rgba(160,110,50,.5)'; g.lineWidth = 2; for (var k = -30; k <= 30; k += 12) { g.beginPath(); g.moveTo(bx + k, C.H - 42); g.lineTo(bx + k + 6, C.H - 12); g.stroke(); }
+      gHud('🧺 ' + caught + ' / 25 · ' + '❤️'.repeat(Math.max(0, lives)));
+      if (caught >= 25) return gEnd('catch', true, 'Фати ' + caught + ' squishies!', caught);
+      if (lives <= 0) return gEnd('catch', false, 'Фати ' + caught + '. Пази на 💩!', caught);
+      gRaf = requestAnimationFrame(loop); })(t0);
+  },
+  memory: function () {   // 6 пара картички
+    var pick = gPool().sort(function () { return Math.random() - .5; }).slice(0, 6), cards = pick.concat(pick).sort(function () { return Math.random() - .5; }), open = [], found = 0, tries = 0, lock = false;
+    gHud('Обиди: 0 / 16'); var grid = document.createElement('div'); grid.className = 'gmem'; $('gArea').appendChild(grid);
+    cards.forEach(function (v, i) { var b = document.createElement('button'); b.className = 'gmc'; b.innerHTML = '<img src="' + thumb(v) + '">'; grid.appendChild(b);
+      b.onclick = function () { if (lock || b.classList.contains('on')) return; b.classList.add('on'); click(1200, .2); open.push([b, v]);
+        if (open.length === 2) { tries++; gHud('Обиди: ' + tries + ' / 16'); lock = true;
+          if (open[0][1].id === open[1][1].id) { found++; tone(784, 1175, .2, 'triangle', .12); open = []; lock = false; if (found === 6) gEnd('memory', tries <= 16, 'Ги најде сите парови во ' + tries + ' обиди.', tries, true); }
+          else setTimeout(function () { open.forEach(function (o) { o[0].classList.remove('on'); }); open = []; lock = false; }, 700); } }; });
+  },
+  squeeze: function () {   // што повеќе допири за 15 секунди
+    var n = 0, t = 15, v = any(gPool()); gHud('⏱ 15 s · 0 / 45');
+    $('gArea').insertAdjacentHTML('beforeend', '<button class="gsq" id="gSq"><img src="' + thumb(v) + '"></button><p class="sub">Стискај што побрзо!</p>');
+    var started = false, b = $('gSq');
+    b.addEventListener('pointerdown', function () { if (t <= 0) return; if (!started) { started = true; gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · ' + n + ' / 45'); if (t <= 0) gEnd('squeeze', n >= 45, n + ' стисоци за 15 секунди.', n); }, 1000); }
+      n++; b.classList.remove('pr'); void b.offsetWidth; b.classList.add('pr'); click(600 + Math.random() * 500, .2); gHud('⏱ ' + t + ' s · ' + n + ' / 45'); });
+  },
+  reflex: function () {   // светнува во случајно време
+    var round = 0, times = [], state = 'wait', t0 = 0, to = null;
+    $('gArea').insertAdjacentHTML('beforeend', '<button class="grx" id="gRx">Допри за почеток</button>'); var b = $('gRx'); gHud('Рунда 0 / 5');
+    var next = function () { state = 'wait'; b.className = 'grx red'; b.textContent = 'Чекај…'; to = setTimeout(function () { state = 'go'; t0 = performance.now(); b.className = 'grx green'; b.textContent = 'СТИСНИ!'; tone(1047, 1047, .1, 'square', .08); }, 1200 + Math.random() * 2600); };
+    b.onpointerdown = function () {
+      if (state === 'wait' && round === 0 && b.textContent.indexOf('почеток') >= 0) { next(); return; }
+      if (state === 'wait') { clearTimeout(to); b.textContent = 'Прерано! 😅'; tone(220, 140, .25, 'sawtooth', .07); setTimeout(next, 900); return; }
+      if (state === 'go') { var ms = Math.round(performance.now() - t0); times.push(ms); round++; state = 'done'; b.className = 'grx'; b.textContent = ms + ' ms'; gHud('Рунда ' + round + ' / 5 · ' + times.join(', '));
+        if (round >= 5) { var avg = Math.round(times.reduce(function (a, c) { return a + c; }, 0) / 5); setTimeout(function () { gEnd('reflex', avg < 450, 'Просек: ' + avg + ' ms', avg, true); }, 700); }
+        else setTimeout(next, 800); } };
+  },
+  math: function () {   // 60 секунди, двоцифрен × едноцифрен
+    var ok = 0, t = 60, q = null, r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
+    $('gArea').insertAdjacentHTML('beforeend', '<div class="qq" id="gQ"></div><input id="gIn" type="number" inputmode="numeric" class="gin"><button class="gbtn" id="gOk">Провери</button>');
+    var nq = function () { var a = r(), b2 = 2 + Math.floor(Math.random() * 8); q = a * b2; $('gQ').textContent = (Math.random() < .5 ? a + ' × ' + b2 : b2 + ' × ' + a) + ' = ?'; $('gIn').value = ''; $('gIn').focus(); };
+    var chk = function () { if ($('gIn').value === '') return; if (+$('gIn').value === q) { ok++; tone(784, 1175, .12, 'triangle', .1); } else tone(220, 150, .2, 'sawtooth', .06); gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 8'); nq(); };
+    $('gOk').onclick = chk; $('gIn').onkeydown = function (e) { if (e.key === 'Enter') chk(); }; nq(); gHud('⏱ 60 s · точни: 0 / 8');
+    gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 8'); if (t <= 0) gEnd('math', ok >= 8, ok + ' точни задачи за 60 секунди.', ok); }, 1000);
+  },
+  pop: function () {   // 24 меурчиња за 10 секунди
+    var left = 24, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 24!');
+    for (var i = 0; i < 24; i++) { var b = document.createElement('button'); b.style.background = cols[Math.floor(i / 4)]; grid.appendChild(b);
+      b.onpointerdown = function () { if (this.classList.contains('on')) return; if (!t0) { t0 = performance.now(); gTimer = setInterval(function () { var s = (performance.now() - t0) / 1000; gHud('⏱ ' + s.toFixed(1) + ' s · уште ' + left); if (s > 10) gEnd('pop', false, 'Времето истече! Остануваат ' + left + '.'); }, 100); }
+        this.classList.add('on'); left--; popSound(); if (!left) { var s = Math.round((performance.now() - t0) / 100) / 10; gEnd('pop', s <= 10, 'Ги пукна сите за ' + s + ' s.', s, true); } }; }
+  },
+  feed: function () {   // squishy со уста се движи горе, фрлај бонбони
+    var C = gCanvas(440), mx = C.W / 2, dir = 1, shots = 10, hits = 0, candy = null, last = performance.now(), v = any(gPool()), im = gImg(v), msg = '';
+    gHud('🍬 10 · погодоци 0 / 6'); C.c.addEventListener('pointerdown', function () { if (!candy && shots > 0) { candy = { x: C.W / 2, y: C.H - 40 }; shots--; tone(500, 900, .12, 'triangle', .08); } });
+    (function loop(now) { var dt = Math.min(.05, (now - last) / 1000), g = C.g; last = now; mx += dir * (90 + hits * 18) * dt; if (mx > C.W - 50) dir = -1; if (mx < 50) dir = 1;
+      g.clearRect(0, 0, C.W, C.H); if (im.complete) g.drawImage(im, mx - 50, 30, 100, 90);
+      g.fillStyle = '#16121f'; g.beginPath(); g.ellipse(mx, 108, 16, 10, 0, 0, 6.3); g.fill(); g.fillStyle = '#ff7a8a'; g.beginPath(); g.ellipse(mx, 112, 8, 4, 0, 0, 6.3); g.fill();
+      if (candy) { candy.y -= 520 * dt; g.font = '28px system-ui'; g.textAlign = 'center'; g.fillText('🍬', candy.x, candy.y);
+        if (candy.y < 118) { if (Math.abs(candy.x - mx) < 26) { hits++; msg = 'Њам! 😋'; tone(659, 1319, .2, 'triangle', .12); fizz(0, .1); } else { msg = 'Промаши!'; click(400, .2); } candy = null; gHud('🍬 ' + shots + ' · погодоци ' + hits + ' / 6 · ' + msg); } }
+      g.font = '30px system-ui'; g.textAlign = 'center'; if (!candy && shots > 0) g.fillText('🍬', C.W / 2, C.H - 30); g.fillStyle = '#a9a3c2'; g.font = '13px system-ui'; g.fillText('Допри за фрлање', C.W / 2, C.H - 8);
+      if (hits >= 6) return gEnd('feed', true, 'Погоди ' + hits + ' пати!', hits);
+      if (shots <= 0 && !candy) return gEnd('feed', hits >= 6, 'Погоди ' + hits + ' од 10.', hits);
+      gRaf = requestAnimationFrame(loop); })(last);
+  }
+};
+$('gamesBtn').addEventListener('click', function () { audio(); $('games').classList.add('open'); gHome(); });
+$('gBack').addEventListener('click', function () { gStop(); $('games').classList.remove('open'); home(); });
 
 // ---------- Пораки до одреден корисник (по код за влез) ----------
 // to = отпечаток на кодот; times = колку пати се покажува по ред; sec = колку секунди трае секој пат.
