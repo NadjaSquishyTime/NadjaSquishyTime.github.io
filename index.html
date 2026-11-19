@@ -212,7 +212,7 @@
   .gcv { display: block; margin: 0 auto; border-radius: 18px; background: linear-gradient(#20183a, #120d22); touch-action: none; }
   .gres { padding: 24px 10px; font-size: 26px; font-weight: 900; } .gres p { font-size: 15px; font-weight: 600; color: #ddd6f5; }
   .gbtn { padding: 12px 20px; margin: 6px 4px; border: 0; border-radius: 14px; font-weight: 800; font-size: 16px; background: linear-gradient(120deg, #7a3cff, #ff7bb0); color: #fff; } .gbtn.alt { background: #2e2650; }
-  .gmem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .gmem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .gmc { aspect-ratio: 1; border: 0; border-radius: 12px; background: linear-gradient(135deg, #7a3cff, #ff7bb0); padding: 4px; } .gmc img { width: 100%; opacity: 0; transition: .2s; } .gmc.on { background: #2a2346; } .gmc.on img { opacity: 1; }
   .gsq { border: 0; background: none; width: 230px; } .gsq img { width: 100%; } .gsq.pr { animation: gpress .15s; } @keyframes gpress { 50% { transform: scale(.85, .78); } }
   .grx { width: 100%; height: 260px; border: 0; border-radius: 22px; font-size: 26px; font-weight: 900; color: #fff; background: #2e2650; } .grx.red { background: #c81e3a; } .grx.green { background: #1fae5a; }
@@ -1808,7 +1808,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-29';
+var APP_VER = '2026-11-19-30';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1827,7 +1827,7 @@ checkVersion();
 // Секоја игра има цел; кога ќе се стигне: +2 Mystery Box и +2 Special Box (еднаш дневно по игра).
 var GAMES = [
   { id: 'catch', n: '🧺 Фати ги кнедлите', d: 'Фати 25 squishies, пази на 💩 (3 животи)' },
-  { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 6-те парови во најмногу 16 обиди' },
+  { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 10-те парови (20 полиња) во најмногу 26 обиди' },
   { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 45 пати за 15 секунди' },
   { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 450 ms' },
   { id: 'math', n: '🧮 Математички маратон', d: '8 точни задачи за 60 секунди' },
@@ -1878,12 +1878,12 @@ var G = {
       gRaf = requestAnimationFrame(loop); })(t0);
   },
   memory: function () {   // 6 пара картички
-    var pick = gPool().sort(function () { return Math.random() - .5; }).slice(0, 6), cards = pick.concat(pick).sort(function () { return Math.random() - .5; }), open = [], found = 0, tries = 0, lock = false;
-    gHud('Обиди: 0 / 16'); var grid = document.createElement('div'); grid.className = 'gmem'; $('gArea').appendChild(grid);
+    var pick = gPool().sort(function () { return Math.random() - .5; }).slice(0, 10), cards = pick.concat(pick).sort(function () { return Math.random() - .5; }), open = [], found = 0, tries = 0, lock = false;
+    gHud('Обиди: 0 / 26 · парови 0 / 10'); var grid = document.createElement('div'); grid.className = 'gmem'; $('gArea').appendChild(grid);
     cards.forEach(function (v, i) { var b = document.createElement('button'); b.className = 'gmc'; b.innerHTML = '<img src="' + thumb(v) + '">'; grid.appendChild(b);
       b.onclick = function () { if (lock || b.classList.contains('on')) return; b.classList.add('on'); click(1200, .2); open.push([b, v]);
-        if (open.length === 2) { tries++; gHud('Обиди: ' + tries + ' / 16'); lock = true;
-          if (open[0][1].id === open[1][1].id) { found++; tone(784, 1175, .2, 'triangle', .12); open = []; lock = false; if (found === 6) gEnd('memory', tries <= 16, 'Ги најде сите парови во ' + tries + ' обиди.', tries, true); }
+        if (open.length === 2) { tries++; gHud('Обиди: ' + tries + ' / 26 · парови ' + found + ' / 10'); lock = true;
+          if (open[0][1].id === open[1][1].id) { found++; tone(784, 1175, .2, 'triangle', .12); open = []; lock = false; gHud('Обиди: ' + tries + ' / 26 · парови ' + found + ' / 10'); if (found === 10) gEnd('memory', tries <= 26, 'Ги најде сите парови во ' + tries + ' обиди.', tries, true); }
           else setTimeout(function () { open.forEach(function (o) { o[0].classList.remove('on'); }); open = []; lock = false; }, 700); } }; });
   },
   squeeze: function () {   // што повеќе допири за 15 секунди
