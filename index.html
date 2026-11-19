@@ -1633,7 +1633,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-14';
+var APP_VER = '2026-11-19-15';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1660,6 +1660,7 @@ var MESSAGES = [
   { id: 'sped-launch', to: '*', text: 'There is something special going on… ✨ SPECIAL SQUISH! ✨ +2 Special Box 🧺', times: 1, sec: 6, blink: 1, vib: 1, sboxes: 2, alarm: 1, party: 1, partySay: 'There is something special going on! Special squish!' },
   { id: 'gift-wilma-nadja', to: 'ba3a575a3084439b', text: 'Подарок само за тебе! 🎾 Доби WilmaWilson!', times: 1, sec: 5, blink: 1, vib: 1, give: ['wilma'], party: 1, partySay: 'Wilma Wilson! Only for you!' },
   { id: 'gift-wilma-dea', to: '069496a50bd67643', text: 'Подарок само за тебе! 🎾 Доби WilmaWilson!', times: 1, sec: 5, blink: 1, vib: 1, give: ['wilma'], party: 1, partySay: 'Wilma Wilson! Only for you!' },
+  { id: 'test-thundermans-1', to: 'c6267e36b14de7e5', text: 'Тест: следната Mystery Box крие Thundermans ⚡ (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['thunderhero'] },   // C6267E (тест)
   { id: 'nadja-treat-5', to: '*', text: 'Надја части 5 кутии! 🎁🎉', times: 1, sec: 5, boxes: 5, party: 1 }   // до СИТЕ корисници
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
