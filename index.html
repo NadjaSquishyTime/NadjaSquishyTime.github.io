@@ -195,6 +195,8 @@
   .qmsg { min-height: 20px; margin: 10px 0 0; font-weight: 700; } .qmsg.bad { color: #ff7a8a; } .qmsg.ok { color: #7dffb0; }
   .qbox.shake { animation: shake .4s; }
   .qwin { display: flex; justify-content: center; gap: 4px; } .qwin img { width: 90px; animation: qpop .5s cubic-bezier(.2,1.5,.4,1) both; }
+  .pphoto { display: none; width: min(340px, 86vw); border-radius: 24px; margin: 18px auto 8px; box-shadow: 0 0 40px rgba(255,123,213,.45); animation: qpop .5s cubic-bezier(.2,1.5,.4,1); }
+  #play.card .pphoto { display: block; } #play.card #cv, #play.card .hint, #play.card .stats { display: none; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -218,6 +220,7 @@
     <div class="top"><button class="back" id="back">← Назад</button><span class="tag" id="pTag"></span></div>
     <h2 id="pName"></h2><p class="sub" id="pSub"></p>
     <canvas id="cv"></canvas>
+    <img id="pPhoto" class="pphoto" alt="">
     <p class="hint">Притисни и држи за да го стисне раката · влечи лево-десно</p>
     <div class="stats">
       <div class="stat"><span>Стисоци</span><b id="pCnt">0</b></div>
@@ -371,15 +374,15 @@ var V = [
   { id: 'globe', name: 'Snow Ball', rar: 'ooak', season: 'xmas', shape: 'ball', globe: 1, noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
   { id: 'gtree', name: 'Grinch Christmas Tree', rar: 'ooak', season: 'xmas', shape: 'xmastree', xdeco: 1, hat: 'santa', feet: 1, feetc: '#c0283a', sfx: 'jingle', fx: 'lights', c: ['#bfeab0', '#2f8f3a', '#145a22'], glow: '#ffd23f' },
   // ---------- Special Edition (само од Special Box): фотографијата е „кожата“ што се растегнува ----------
-  { id: 'spgold', name: 'Golden', rar: 'sped', shape: 'sp_spgold', photo: 'slike/spgold.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#fff6c2', '#f2c230', '#a8700f'] },
-  { id: 'spocean', name: 'Ocean Blue', rar: 'sped', shape: 'sp_spocean', photo: 'slike/spocean.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#e6f8ff', '#3fa9e8', '#0a4f9e'] },
-  { id: 'sppeng', name: 'Little Penguin', rar: 'sped', shape: 'sp_sppeng', photo: 'slike/sppeng.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#eef9ff', '#7fcff2', '#2f8fc4'] },
-  { id: 'spuni', name: 'Violet Sparkle', rar: 'sped', shape: 'sp_spuni', photo: 'slike/spuni.webp', noface: 1, horn: 1, catears: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#ffffff', '#efe6ff', '#bba6e6'] },
-  { id: 'spgoldcorn', name: 'Golden Eleonor', rar: 'sped', shape: 'sp_spgoldcorn', photo: 'slike/spgoldcorn.webp', noface: 1, horn: 1, catears: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#fffbd0', '#f6d23a', '#c99000'] },
-  { id: 'spbeads', name: 'Colorful Ball', rar: 'sped', shape: 'sp_spbeads', photo: 'slike/spbeads.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#ffffff', '#f6f2ff', '#cfc6e6'] },
-  { id: 'spgalaxy', name: 'Starry Night', rar: 'sped', shape: 'sp_spgalaxy', photo: 'slike/spgalaxy.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#6f8cff', '#2a2f9e', '#0b0e3a'] },
-  { id: 'spgoldplush', name: 'CUTE', rar: 'sped', shape: 'sp_spgoldplush', photo: 'slike/spgoldplush.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#ffe7a6', '#e3a93a', '#a8701a'] },
-  { id: 'sprainbow', name: 'Rainbow Cute', rar: 'sped', shape: 'sp_sprainbow', photo: 'slike/sprainbow.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#fff6d8', '#ffd6a8', '#b9a6e6'] },
+  { id: 'spgold', name: 'Golden', rar: 'sped', card: 'slike/card_spgold.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#fff6c2', '#f2c230', '#a8700f'] },
+  { id: 'spocean', name: 'Ocean Blue', rar: 'sped', card: 'slike/card_spocean.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#e6f8ff', '#3fa9e8', '#0a4f9e'] },
+  { id: 'sppeng', name: 'Little Penguin', rar: 'sped', card: 'slike/card_sppeng.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#eef9ff', '#7fcff2', '#2f8fc4'] },
+  { id: 'spuni', name: 'Violet Sparkle', rar: 'sped', card: 'slike/card_spuni.webp', noface: 1, horn: 1, catears: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#ffffff', '#efe6ff', '#bba6e6'] },
+  { id: 'spgoldcorn', name: 'Golden Eleonor', rar: 'sped', card: 'slike/card_spgoldcorn.webp', noface: 1, horn: 1, catears: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#fffbd0', '#f6d23a', '#c99000'] },
+  { id: 'spbeads', name: 'Colorful Ball', rar: 'sped', card: 'slike/card_spbeads.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#ffffff', '#f6f2ff', '#cfc6e6'] },
+  { id: 'spgalaxy', name: 'Starry Night', rar: 'sped', card: 'slike/card_spgalaxy.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'gel', c: ['#6f8cff', '#2a2f9e', '#0b0e3a'] },
+  { id: 'spgoldplush', name: 'CUTE', rar: 'sped', card: 'slike/card_spgoldplush.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#ffe7a6', '#e3a93a', '#a8701a'] },
+  { id: 'sprainbow', name: 'Rainbow Cute', rar: 'sped', card: 'slike/card_sprainbow.webp', noface: 1, fx: 'sped', sfx: 'sped', mat: 'plush', c: ['#fff6d8', '#ffd6a8', '#b9a6e6'] },
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
@@ -1014,6 +1017,7 @@ function photoImg(src) {   // слика за squishy (се вчитува ед�
   return PHOTOS[src];
 }
 function thumb(v) {
+  if (v.card) return v.card;   // Special Edition: фотографијата
   if (thumbs[v.id]) return thumbs[v.id];
   if (v.photo && !(photoImg(v.photo).complete && photoImg(v.photo).naturalWidth)) { var c0 = document.createElement('canvas'); c0.width = 240; c0.height = 216; var g0 = c0.getContext('2d'); g0.scale(.6, .6); g0.translate(0, -42); draw(g0, SHAPES[v.shape], v, 1); return c0.toDataURL(); }
   var c = document.createElement('canvas'); c.width = 240; c.height = 216; var g = c.getContext('2d');
@@ -1303,6 +1307,11 @@ function up() {
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 function play(v) {
+  $('play').classList.toggle('card', !!v.card);
+  if (v.card) {   // Special Edition: само фотографија, без стискање
+    cur = null; running = false; var r0 = RAR[v.rar]; $('pPhoto').src = v.card; $('pName').textContent = v.name; $('pSub').textContent = 'Special Edition ✨';
+    var tg0 = $('pTag'); tg0.textContent = r0.n; tg0.className = 'tag sped'; $('play').style.setProperty('--rc', r0.c); $('play').classList.add('open');
+    audio(); [1047, 1319, 1568].forEach(function (f, k) { tone(f, f, .3, 'triangle', .08, k * .09); }); return; }
   v._crack = 0; cur = v; audio(); useShape(v); resetBody(); hand.down = false; hand.h = 0; hand.q = 0; cur._n = 0;
   var r = RAR[v.rar]; $('play').style.setProperty('--rc', v.glow || r.c);
   $('pName').textContent = v.name; $('pSub').textContent = { gel: 'Гел · брзо се враќа', crunch: v.bar ? 'Crunchy · чоколадото пука' : 'Crunchy · крцка', taba: 'Taba силикон · slow-rise', plush: 'Плиш · меко и тивко' }[v.mat || 'taba'];
@@ -1558,7 +1567,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-5';
+var APP_VER = '2026-11-19-6';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
