@@ -394,6 +394,7 @@ var V = [
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'thunderhero', name: 'Thundermans', rar: 'legend', face: 'hero', hero: 1, fx: 'hero', sfx: 'hero', mat: 'gel', glow: '#ffe14d', c: ['#9fd8ff', '#2f6fe0', '#0b2a8a'] },
+  { id: 'globe2', name: 'Зимско селце', rar: 'legend', shape: 'ball', globe: 1, scene: 'village', noface: 1, sfx: 'globe', fx: 'snow', mat: 'gel', c: ['#ffffff', '#eef8ff', '#b8d4e6'], a: .22, glow: '#cfe8ff' },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -779,6 +780,17 @@ function globeScene(g, v, cx, cy, R, time) {   // сцена во топката
   var s = R / 108, i;
   g.save(); g.translate(cx, cy); g.scale(s, s);
   g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(0, 96, 120, 36, 0, 0, 6.3); g.fill();   // снег на дното
+  if (v.scene === 'village') {   // зимско селце: елки, куќичка со светло прозорче, снешко-кнедла
+    [[-70, 30, 1], [70, 36, .8], [-30, 50, .6]].forEach(function (t) { var k = t[2]; g.fillStyle = '#2f8a4e'; for (var l = 0; l < 3; l++) { g.beginPath(); g.moveTo(t[0], t[1] - 80 * k + l * 24 * k); g.lineTo(t[0] + (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.lineTo(t[0] - (22 + l * 9) * k, t[1] - 40 * k + l * 24 * k); g.closePath(); g.fill();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(t[0], t[1] - 44 * k + l * 24 * k, (18 + l * 8) * k, 3 * k, 0, 0, 6.3); g.fill(); g.fillStyle = '#2f8a4e'; } g.fillStyle = '#6b3d1a'; g.fillRect(t[0] - 4 * k, t[1] + 32 * k - 30 * k, 8 * k, 14 * k); });
+    g.fillStyle = '#c96a3a'; g.fillRect(10, 30, 50, 40); g.fillStyle = '#8a3a2a'; g.beginPath(); g.moveTo(2, 32); g.lineTo(35, 2); g.lineTo(68, 32); g.closePath(); g.fill();
+    g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(0, 32); g.quadraticCurveTo(35, -6, 70, 32); g.quadraticCurveTo(35, 18, 0, 32); g.fill();
+    g.fillStyle = '#ffd86b'; g.fillRect(18, 42, 13, 13); g.fillStyle = '#5a2a1a'; g.fillRect(38, 46, 12, 24);
+    g.globalAlpha = .35 + .2 * Math.sin(time * 3); dot(g, { x: 24, y: 48 }, 16, '#ffd86b'); g.globalAlpha = 1;
+    dot(g, { x: -12, y: 70 }, 20, '#ffffff'); dot(g, { x: -12, y: 44 }, 14, '#ffffff');   // снешко-кнедла
+    dot(g, { x: -17, y: 41 }, 2, '#16121f'); dot(g, { x: -7, y: 41 }, 2, '#16121f'); g.fillStyle = '#ff8a1f'; g.beginPath(); g.moveTo(-12, 45); g.lineTo(-3, 47); g.lineTo(-12, 49); g.fill();
+    g.strokeStyle = '#e8324a'; g.lineWidth = 4; g.beginPath(); g.moveTo(-24, 54); g.lineTo(0, 54); g.lineTo(2, 64); g.stroke();
+  } else {
   g.fillStyle = '#2f8a3e'; [[-58, -70, 22], [-58, -36, 32], [-58, 4, 42], [-58, 44, 50]].forEach(function (t) { g.beginPath(); g.moveTo(t[0], t[1] - 30); g.lineTo(t[0] + t[2], t[1] + 14); g.lineTo(t[0] - t[2], t[1] + 14); g.closePath(); g.fill(); });   // елка
   ['#d9d9e6', '#4da3ff', '#e8324a', '#ffd23f'].forEach(function (c, k) { dot(g, { x: -70 + (k % 2) * 24, y: -40 + k * 22 }, 5, c); });
   g.fillStyle = '#7a4a24'; g.beginPath(); g.ellipse(52, -2, 26, 34, .3, 0, 6.3); g.fill();   // вреќа
@@ -793,6 +805,7 @@ function globeScene(g, v, cx, cy, R, time) {   // сцена во топката
   dot(g, { x: 13, y: -32 }, 2, '#2a1a1a'); dot(g, { x: 25, y: -32 }, 2, '#2a1a1a'); dot(g, { x: 19, y: -24 }, 3, '#ff9a8a');
   [[-30, 74, 26, 22, '#3fb8c9', '#ffd23f'], [58, 70, 30, 26, '#59c3a8', '#e8324a'], [86, 80, 18, 16, '#c97bff', '#ffffff']].forEach(function (b) {   // подароци
     g.fillStyle = b[4]; g.fillRect(b[0], b[1], b[2], b[3]); g.fillStyle = b[5]; g.fillRect(b[0] + b[2] / 2 - 2.5, b[1], 5, b[3]); g.fillRect(b[0], b[1] + b[3] / 2 - 2.5, b[2], 5); });
+  }
   g.restore();
   var d = decor(v), stir = v === cur ? hand.q * hand.h : 0;
   if (!d.snow) { var r = rng(77); d.snow = []; for (i = 0; i < 70; i++) d.snow.push({ u: r() * 2 - 1, v: r() * 2 - 1, sp: .08 + r() * .12, s: 1.2 + r() * 2.2, ph: r() * 6.28 }); }
@@ -1640,7 +1653,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-19';
+var APP_VER = '2026-11-19-20';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
