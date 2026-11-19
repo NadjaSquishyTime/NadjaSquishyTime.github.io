@@ -1200,7 +1200,7 @@ function audio() {
 // iOS: звукот да се слуша и кога телефонот е на тивко (Safari 17+)
 try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
 document.addEventListener('pointerdown', function () { if (ac) audio(); }, true);   // секој допир го „буди“ звукот ако заспал
-document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ac) audio(); });
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ac) audio(); if (document.visibilityState === 'hidden') buzzStop(); });
 // ---------- Позадинска музика (оригинална, во K-pop / „soda pop“ стил) ----------
 // Свири само на почетниот екран; копчето 🔊/🔇 ја пали и гаси (се памети).
 var music = (function () {
@@ -1321,6 +1321,17 @@ function flyBuzz(dur, vol) {   // зуење на мува: пила-бран с
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .08); g.gain.setValueAtTime(vol, t + dur * .6); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); lfo.start(t); o.stop(t + dur + .05); lfo.stop(t + dur + .05);
 }
+var buzzLoop = null;   // постојано зуење на муви (додека е отворен Смрдливко)
+function buzzStart() {
+  var c = audio(); if (!c || buzzLoop) return; var out = c.createGain(); out.gain.value = 0; out.connect(c.destination); var parts = [];
+  [[205, 9, 26], [238, 12, 30], [172, 7, 20]].forEach(function (q) { var o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.value = q[0]; l.frequency.value = q[1]; lg.gain.value = q[2]; l.connect(lg); lg.connect(o.frequency);
+    f.type = 'bandpass'; f.frequency.value = 850; f.Q.value = .8; g.gain.value = .33; o.connect(f); f.connect(g); g.connect(out); o.start(); l.start(); parts.push(o, l); });
+  var w = c.createOscillator(), wg = c.createGain(); w.frequency.value = .35; wg.gain.value = .25; w.connect(wg); w.start(); parts.push(w);   // мувите се приближуваат и оддалечуваат
+  buzzLoop = { out: out, parts: parts, wob: wg };
+}
+function buzzLevel(v) { if (!buzzLoop || !ac) return; buzzLoop.out.gain.setTargetAtTime(v, ac.currentTime, .08); }
+function buzzStop() { if (!buzzLoop) return; var b = buzzLoop; buzzLoop = null; b.out.gain.setTargetAtTime(0, ac.currentTime, .05); setTimeout(function () { b.parts.forEach(function (o) { try { o.stop(); } catch (e) {} }); b.out.disconnect(); }, 400); }
 function tennisHit() {   // удар со рекет по тениско топче: „поп!“ + одбивање од теренот
   var c = audio(); if (!c) return;
   burst(.06, 'bandpass', 1400, .9); click(2600, .55); tone(260, 120, .09, 'triangle', .35);   // удар во жиците
@@ -1464,7 +1475,7 @@ function frame(now) {
   g2.clearRect(0, 0, W, H);
   if (hand.h > .02) drawFinger(g2, fl[2]);
   draw(g2, P, cur, now / 1000);
-  if (cur.sfx === 'buzz' && Math.random() < dt * (.25 + hand.q * 2)) flyBuzz(.5 + Math.random() * .7, .04 + hand.q * .06);   // муви зујат околу
+  if (cur.sfx === 'buzz') { buzzStart(); buzzLevel(.05 + .025 * Math.sin(now / 1000 * 1.7) + hand.q * .09); }   // муви зујат постојано, погласно при стискање
   if (cur.popit && cur._bp && hand.down && hand.q > .3) {   // меурчињата под прстите пукаат
     fingerList().forEach(function (F) { cur._bp.forEach(function (b, k) { if (!cur._pop[k] && Math.hypot(b.x - F.x, b.y - F.y) < F.r + b.r * .8) { cur._pop[k] = 1; popSound(); } }); });
     if (cur._bp.length && Object.keys(cur._pop).length >= cur._bp.length) { cur._pop = {}; [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .18, 'triangle', .12, .1 + k * .07); }); }   // сите пукнати → одново
@@ -1507,6 +1518,7 @@ function up() {
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 function play(v) {
+  if (v.sfx !== 'buzz') buzzStop();
   $('play').classList.toggle('card', !!v.card);
   if (v.card) {   // Special Edition: само фотографија, без стискање
     cur = null; running = false; var r0 = RAR[v.rar]; $('pPhoto').src = v.card; $('pName').textContent = v.name; $('pSub').textContent = 'Special Edition ✨';
@@ -1519,7 +1531,7 @@ function play(v) {
   $('pCnt').textContent = 0; $('pHint').textContent = ''; $('play').classList.add('open'); sizeCanvas();
   if (!running) { running = true; lastT = 0; requestAnimationFrame(frame); }
 }
-$('back').addEventListener('click', function () { running = false; if (cur) cur._crack = 0; cur = null; if (nGain) nGain.gain.value = 0; $('play').classList.remove('open'); home(); });
+$('back').addEventListener('click', function () { buzzStop(); running = false; if (cur) cur._crack = 0; cur = null; if (nGain) nGain.gain.value = 0; $('play').classList.remove('open'); home(); });
 
 // ---------- Почетен екран ----------
 function home() {
@@ -1776,7 +1788,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-27';
+var APP_VER = '2026-11-19-28';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
