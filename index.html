@@ -1724,9 +1724,9 @@ $('box').addEventListener('click', function () {
   if (prizeV.pack === 'can') burst(.55, 'highpass', 3600, .35);   // „пссст“ на вакуумска туба
   if (prizeV.fx) specialFx(prizeV.fx);
   setTimeout(function () {
-    if (gold) say('Golden! ' + omg());
+    if (prizeV.id === 'poopfly') { say('Oh shit!'); flyBuzz(2, .12); }
+    else if (gold) say('Golden! ' + omg());
     else if (prizeV.id === 'tennis') say('Ace! ' + omg());
-    else if (prizeV.id === 'poopfly') { say('Oh shit!'); flyBuzz(2, .12); }
     else if (prizeV.id === 'thunderhero') say('Super power! ' + omg());
     else if (prizeV.rar === 'sped') say('Special squish! ' + omg());
     else if (prizeV.id === 'king' || prizeV.id === 'king2') say('All hail the King! ' + omg());
