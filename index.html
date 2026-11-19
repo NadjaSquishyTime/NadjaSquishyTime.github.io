@@ -1558,7 +1558,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-4';
+var APP_VER = '2026-11-19-5';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1606,13 +1606,14 @@ function showGreeting() {   // еднаш по отворање, откако е
 setTimeout(showGreeting, 700); setInterval(showGreeting, 1500);
 function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
 var msgBusy = false;
-// ---------- Игра: множење двоцифрен × двоцифрен → 3 squishies ----------
+// ---------- Игра: множење двоцифрен × едноцифрен → 3 squishies ----------
 // Се појавува на почетниот екран: прв пат ~25 с по отворање, потоа најрано на секои 30 минути.
 var QUIZ_EVERY = 30 * 60000, quiz = null;
 function quizFree() { return !msgBusy && !$('umsg').classList.contains('on') && !document.querySelector('.screen.open') && !$('quiz').classList.contains('on') && document.visibilityState === 'visible'; }
 function quizStart() {
   var r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
-  quiz = { a: r(), b: r(), tries: 0 }; $('qq').textContent = quiz.a + ' × ' + quiz.b + ' = ?';
+  var one = 2 + Math.floor(Math.random() * 8), two = r(); quiz = Math.random() < .5 ? { a: two, b: one, tries: 0 } : { a: one, b: two, tries: 0 };   // двоцифрен × едноцифрен (2–9)
+  $('qq').textContent = quiz.a + ' × ' + quiz.b + ' = ?';
   $('qin').value = ''; $('qmsg').textContent = ''; $('qmsg').className = 'qmsg'; $('qwin').innerHTML = ''; $('qok').disabled = false; $('qin').disabled = false;
   $('quiz').classList.add('on'); tone(660, 990, .2, 'triangle', .12); setTimeout(function () { try { $('qin').focus(); } catch (e) {} }, 300);
 }
