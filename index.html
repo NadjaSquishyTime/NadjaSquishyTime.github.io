@@ -980,7 +980,7 @@ var music = (function () {
     wanted = true; audio(); $('musBtn').textContent = en ? '🔊' : '🔇'; }, enabled: enabled };
 })();
 // ---------- Снимени гласови (zvuci/) ----------
-var CLIPS = { omg: 'zvuci/omg.m4a' }, clipBuf = {}, clipsLoading = false;
+var CLIPS = { omg: 'zvuci/omg.m4a', omg2: 'zvuci/omg2.m4a' }, clipBuf = {}, clipsLoading = false;
 function loadClips() {
   if (clipsLoading || !ac || !window.fetch) return; clipsLoading = true;
   Object.keys(CLIPS).forEach(function (k) {
@@ -1018,9 +1018,13 @@ function speak(text) {
     if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 60); } else go();   // по cancel() веднаш speak() понекогаш се губи
   } catch (e) {}
 }
+// Две снимени OMG пораки: се менуваат наизменично (прво едната, па другата)
+var omgTurn = Math.random() < .5 ? 0 : 1;
+function omgClip() { var ks = ['omg', 'omg2'].filter(function (k) { return clipBuf[k]; }); if (!ks.length) return null;
+  omgTurn = 1 - omgTurn; return ks.length > 1 ? ks[omgTurn] : ks[0]; }
 function say(text) {   // „O M G, …“ се пушта од снимката (ако е вчитана); останатото го кажува гласот на телефонот
-  var i = text.indexOf('O M G');
-  if (i >= 0 && clipBuf.omg) { var pre = text.slice(0, i).trim(); if (pre) { speak(pre); playClip('omg', .85); } else playClip('omg', 0); return; }
+  var i = text.indexOf('O M G'), k = i >= 0 ? omgClip() : null;
+  if (k) { var pre = text.slice(0, i).trim(); if (pre) { speak(pre); playClip(k, .85); } else playClip(k, 0); return; }
   speak(text);
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
@@ -1044,12 +1048,64 @@ function liveSound(speed, squeeze, deform, mat) {
   var base = mat === 'crunch' ? .1 : mat === 'gel' ? .34 : .26;
   var vol = clamp(speed * base, 0, .4) + (hand.down ? 0 : clamp(deform * .5, 0, .07));
   nGain.gain.setTargetAtTime(vol, t, .04);
-  nFilt.frequency.setTargetAtTime((mat === 'gel' ? 380 : 620) + squeeze * 1500, t, .05);
+  nFilt.frequency.setTargetAtTime(((mat === 'gel' ? 380 : 620) + squeeze * 1500) * shp(), t, .05);
   if (mat === 'crunch') { var cr = clamp(speed * 1.1 + (hand.down ? .06 + squeeze * .22 : 0), 0, .95);   // крцкање: и додека држиш
     if (Math.random() < cr) click(1400 + Math.random() * 3600, .22 + Math.random() * .16);
     if (Math.random() < cr * .35) click(2600 + Math.random() * 2600, .18, .012 + Math.random() * .02); }
   if (mat === 'gel' && Math.random() < speed * .45 + (hand.down ? squeeze * .05 : 0)) fizz(0, .05 + Math.random() * .05);   // газирани меурчиња
   if (mat !== 'crunch' && mat !== 'plush' && Math.random() < speed * .22) click(500 + Math.random() * 700, .16);
+}
+
+// ---------- Звук по облик и содржина ----------
+// Секој облик има своја висина: малите и тенките пискаат, големите и тешките се подлабоки.
+var SHAPE_PITCH = { dome: 1, ball: 1, apple: 1.05, peach: 1, egg: 1, bear: .9, paw: 1.2, critter: 1.3, duck: 1.35, fly: 1.6, berry: 1.5, pop: 1.3,
+  banana: 1.2, carrot: 1.2, cuke: 1.1, corn: 1.15, stick: 1.3, cookie: 1.1, jelly: 1.15, soap: 1.1, face1: 1.2, face2: 1.2, pine: .9, xmastree: .95,
+  stack: .9, bun: .85, pud: .85, loaf: .7, block: .75, cube: .8, bar: .8, poop: .65 };
+function shp() { return (cur && SHAPE_PITCH[cur.shape || 'dome']) || 1; }
+function airy(dur, f0, f1, vol, delay, q) {   // шум што лизга (воздишка, шлапкање)
+  var c = audio(); if (!c) return; var t = c.currentTime + (delay || 0), n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+  for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n);
+  var s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = buf; f.type = 'bandpass'; f.Q.value = q || 1.2;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.value = vol;
+  s.connect(f); f.connect(g); g.connect(c.destination); s.start(t);
+}
+function wobble(f, dur, vol, delay) {   // „воблање“ на желе: тон што трепери и тивне
+  var c = audio(); if (!c) return; var t = c.currentTime + (delay || 0), o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+  o.type = 'sine'; o.frequency.value = f; l.frequency.value = 11; lg.gain.value = f * .12; l.connect(lg); lg.connect(o.frequency);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(c.destination); o.start(t); l.start(t); o.stop(t + dur + .02); l.stop(t + dur + .02);
+}
+function rattle(n, spread, delay) { for (var i = 0; i < n; i++) { var d = (delay || 0) + Math.random() * spread; click(3000 + Math.random() * 3000, .2, d); tone(1800 + Math.random() * 1600, 1400, .03, 'triangle', .05, d); } }
+function quack(delay) { var f = 520 + Math.random() * 60; tone(f, f * .72, .16, 'sawtooth', .07, delay); airy(.16, 1400, 900, .35, delay, 4); }
+function squeaker(k, vol, delay) { var f = 1050 * k; tone(f, f * 1.5, .09, 'triangle', vol, delay); tone(f * 1.5, f * 1.15, .12, 'triangle', vol * .8, (delay || 0) + .08); }
+// кога ќе почнеш да стискаш
+function pressSound() {
+  var k = shp(), m = cur.mat || 'taba';
+  if (m === 'gel') { tone(260 * k, 120 * k, .18, 'sine', .22); airy(.18, 900 * k, 400 * k, .25, 0, 3); }
+  else if (m === 'plush') { burst(.14, 'lowpass', 420, .45); tone(130 * k, 70 * k, .14, 'sine', .16); }
+  else if (m === 'crunch') { click(2600, .35); click(3600, .22, .015); tone(150 * k, 80 * k, .12, 'sine', .14); }
+  else { tone(150 * k, 80 * k, .16, 'sine', .22); airy(.3, 1200 * k, 500 * k, .18); }   // taba: меко пуштање воздух
+  if (cur.beads) rattle(4, .12);
+}
+// кога ќе пуштиш: звук по содржина + додаток по облик
+function releaseSound(pk) {
+  var k = shp(), m = cur.mat || 'taba', v = .4 + clamp(pk, 0, 1) * .6, s = cur.shape || 'dome';
+  if (m === 'gel') { tone(150 * k, 560 * k, .1, 'sine', .22 * v); wobble(420 * k, .35, .1 * v, .07); for (var i = 0; i < 2 + pk * 5; i++) fizz(.05 + Math.random() * .3, .05); }
+  else if (m === 'plush') { burst(.1, 'lowpass', 600, .35 * v); if (pk > .4) squeaker(k, .09 * v, .02); }
+  else if (m === 'crunch') { tone(170 * k, 560 * k, .08, 'sine', .2); click(900, .25, .04); rattle(3 + Math.round(pk * 5), .2, .02); }
+  else { tone(170 * k, 480 * k, .3, 'sine', .14 * v); airy(.6 + pk * .7, 350 * k, 1800 * k, .22 * v, .03); }   // taba slow-rise: долга воздишка нагоре
+  if (cur.beads) rattle(5 + Math.round(pk * 10), .35, .02);
+  if (pk < .45 || cur.sfx) return;   // додатокот по облик (не ги покрива гром, снег, ѕвонче, крал, тенис)
+  if (s === 'duck') { quack(.06); if (pk > .8) quack(.28); }
+  else if (s === 'fly') { tone(190, 170, .45, 'sawtooth', .05, .03); tone(197, 176, .45, 'sawtooth', .05, .03); }
+  else if (s === 'poop') { tone(95, 55, .35, 'sawtooth', .07, .04); burst(.3, 'lowpass', 280, .45, .04); }
+  else if (s === 'soap') { for (var j = 0; j < 8; j++) fizz(.05 + j * .05 + Math.random() * .03, .07); }
+  else if (/^(berry|peach|apple|banana|jelly|egg)$/.test(s)) { airy(.22, 2400 * k, 500, .5 * v, .03, 2.5); fizz(.12, .05); }   // сочно шлапкање
+  else if (/^(bear|paw|critter|face1|face2)$/.test(s)) { if (m !== 'plush') squeaker(k, .08 * v, .05); }
+  else if (s === 'pop') { click(1500, .5, .03); tone(900, 220, .06, 'triangle', .25, .03); }
+  else if (/^(cookie|corn|carrot|cuke|stick|bar)$/.test(s)) { click(3200, .4, .03); click(4400, .3, .05); click(2600, .25, .08); }
+  else if (/^(pine|xmastree)$/.test(s)) jingle(5, .05);
+  else if (/^(loaf|bun|pud|block|cube|stack)$/.test(s)) { tone(110 * k, 60, .25, 'sine', .25 * v, .02); burst(.2, 'lowpass', 300, .4 * v, .02); }
 }
 
 // ---------- Меко тело ----------
@@ -1134,13 +1190,13 @@ cv.addEventListener('pointerdown', function (e) {
   hand.down = true; hand.t0 = performance.now(); hand.y0 = hand.y = p.y; hand.tx = clamp(p.x, CX - 62, CX + 50); hand.peak = 0;
   if (hand.h < .05) hand.x = hand.tx;
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
-  tone(150, 80, .14, 'sine', .22); if (navigator.vibrate) navigator.vibrate(12);
+  pressSound(); if (navigator.vibrate) navigator.vibrate(12);
 });
 cv.addEventListener('pointermove', function (e) { if (hand.down) { var p = cvPos(e); hand.y = p.y; hand.tx = clamp(p.x, CX - 62, CX + 50); } });
 var SQ_MIN = .62, lastSq = 0;   // стисокот се брои само над оваа линија на притисок
 function up() {
   if (!hand.down) return; hand.down = false;
-  tone(170, 560, .08, 'sine', .22); click(900, .25, .04); if (navigator.vibrate) navigator.vibrate(20);
+  releaseSound(hand.peak); if (navigator.vibrate) navigator.vibrate(20);
   if (hand.peak > .45 && cur.sfx === 'thunder') { click(3200, .5); burst(1.3, 'lowpass', 170, 1); tone(85, 30, 1.1, 'sawtooth', .16, .05); if (navigator.vibrate) navigator.vibrate([30, 40, 120]); }
   if (hand.peak > .45 && cur.sfx === 'globe') { var sc = [784, 988, 1175, 1319, 1568]; melody([any(sc), any(sc), any(sc)], .14); burst(.6, 'highpass', 6000, .05); }
   if (hand.peak > .45 && cur.sfx === 'jingle') jingle(9);
@@ -1387,7 +1443,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-18-8';
+var APP_VER = '2026-11-19-1';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
