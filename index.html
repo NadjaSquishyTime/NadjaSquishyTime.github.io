@@ -1808,7 +1808,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-31';
+var APP_VER = '2026-11-19-32';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1826,13 +1826,13 @@ checkVersion();
 // ---------- 🎮 Игри за еден играч ----------
 // Секоја игра има цел; кога ќе се стигне: +2 Mystery Box и +2 Special Box (еднаш дневно по игра).
 var GAMES = [
-  { id: 'catch', n: '🧺 Фати ги кнедлите', d: 'Фати 25 squishies, пази на 💩 (3 животи)' },
-  { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 10-те парови (20 полиња) во најмногу 26 обиди' },
-  { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 45 пати за 15 секунди' },
-  { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 450 ms' },
-  { id: 'math', n: '🧮 Математички маратон', d: '8 точни задачи за 60 секунди' },
-  { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 36 меурчиња за 9 секунди' },
-  { id: 'feed', n: '🎯 Нахрани го squishy-то', d: '6 погодоци од 10 бонбони' }
+  { id: 'catch', n: '🧺 Фати ги кнедлите', d: 'Фати 30 squishies, пази на 💩 (3 животи)' },
+  { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 10-те парови (20 полиња) во најмногу 23 обиди' },
+  { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 52 пати за 15 секунди' },
+  { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 400 ms' },
+  { id: 'math', n: '🧮 Математички маратон', d: '10 точни задачи за 60 секунди' },
+  { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 36 меурчиња за 8,5 секунди' },
+  { id: 'feed', n: '🎯 Нахрани го squishy-то', d: '7 погодоци од 10 бонбони' }
 ];
 var gTimer = null, gRaf = null;
 function gStop() { clearInterval(gTimer); gTimer = null; cancelAnimationFrame(gRaf); gRaf = null; }
@@ -1872,26 +1872,26 @@ var G = {
       items = items.filter(function (it) { return !it.done && it.y < C.H + 40; });
       g.fillStyle = '#e9c891'; g.beginPath(); g.roundRect(bx - 42, C.H - 44, 84, 34, [6, 6, 16, 16]); g.fill(); g.strokeStyle = '#c99a5c'; g.lineWidth = 3; g.stroke();
       g.strokeStyle = 'rgba(160,110,50,.5)'; g.lineWidth = 2; for (var k = -30; k <= 30; k += 12) { g.beginPath(); g.moveTo(bx + k, C.H - 42); g.lineTo(bx + k + 6, C.H - 12); g.stroke(); }
-      gHud('🧺 ' + caught + ' / 25 · ' + '❤️'.repeat(Math.max(0, lives)));
-      if (caught >= 25) return gEnd('catch', true, 'Фати ' + caught + ' squishies!', caught);
+      gHud('🧺 ' + caught + ' / 30 · ' + '❤️'.repeat(Math.max(0, lives)));
+      if (caught >= 30) return gEnd('catch', true, 'Фати ' + caught + ' squishies!', caught);
       if (lives <= 0) return gEnd('catch', false, 'Фати ' + caught + '. Пази на 💩!', caught);
       gRaf = requestAnimationFrame(loop); })(t0);
   },
   memory: function () {   // 6 пара картички
     var pick = gPool().sort(function () { return Math.random() - .5; }).slice(0, 10), cards = pick.concat(pick).sort(function () { return Math.random() - .5; }), open = [], found = 0, tries = 0, lock = false;
-    gHud('Обиди: 0 / 26 · парови 0 / 10'); var grid = document.createElement('div'); grid.className = 'gmem'; $('gArea').appendChild(grid);
+    gHud('Обиди: 0 / 23 · парови 0 / 10'); var grid = document.createElement('div'); grid.className = 'gmem'; $('gArea').appendChild(grid);
     cards.forEach(function (v, i) { var b = document.createElement('button'); b.className = 'gmc'; b.innerHTML = '<img src="' + thumb(v) + '">'; grid.appendChild(b);
       b.onclick = function () { if (lock || b.classList.contains('on')) return; b.classList.add('on'); click(1200, .2); open.push([b, v]);
-        if (open.length === 2) { tries++; gHud('Обиди: ' + tries + ' / 26 · парови ' + found + ' / 10'); lock = true;
-          if (open[0][1].id === open[1][1].id) { found++; tone(784, 1175, .2, 'triangle', .12); open = []; lock = false; gHud('Обиди: ' + tries + ' / 26 · парови ' + found + ' / 10'); if (found === 10) gEnd('memory', tries <= 26, 'Ги најде сите парови во ' + tries + ' обиди.', tries, true); }
+        if (open.length === 2) { tries++; gHud('Обиди: ' + tries + ' / 23 · парови ' + found + ' / 10'); lock = true;
+          if (open[0][1].id === open[1][1].id) { found++; tone(784, 1175, .2, 'triangle', .12); open = []; lock = false; gHud('Обиди: ' + tries + ' / 23 · парови ' + found + ' / 10'); if (found === 10) gEnd('memory', tries <= 23, 'Ги најде сите парови во ' + tries + ' обиди.', tries, true); }
           else setTimeout(function () { open.forEach(function (o) { o[0].classList.remove('on'); }); open = []; lock = false; }, 700); } }; });
   },
   squeeze: function () {   // што повеќе допири за 15 секунди
-    var n = 0, t = 15, v = any(gPool()); gHud('⏱ 15 s · 0 / 45');
+    var n = 0, t = 15, v = any(gPool()); gHud('⏱ 15 s · 0 / 52');
     $('gArea').insertAdjacentHTML('beforeend', '<button class="gsq" id="gSq"><img src="' + thumb(v) + '"></button><p class="sub">Стискај што побрзо!</p>');
     var started = false, b = $('gSq');
-    b.addEventListener('pointerdown', function () { if (t <= 0) return; if (!started) { started = true; gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · ' + n + ' / 45'); if (t <= 0) gEnd('squeeze', n >= 45, n + ' стисоци за 15 секунди.', n); }, 1000); }
-      n++; b.classList.remove('pr'); void b.offsetWidth; b.classList.add('pr'); click(600 + Math.random() * 500, .2); gHud('⏱ ' + t + ' s · ' + n + ' / 45'); });
+    b.addEventListener('pointerdown', function () { if (t <= 0) return; if (!started) { started = true; gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · ' + n + ' / 52'); if (t <= 0) gEnd('squeeze', n >= 52, n + ' стисоци за 15 секунди.', n); }, 1000); }
+      n++; b.classList.remove('pr'); void b.offsetWidth; b.classList.add('pr'); click(600 + Math.random() * 500, .2); gHud('⏱ ' + t + ' s · ' + n + ' / 52'); });
   },
   reflex: function () {   // светнува во случајно време
     var round = 0, times = [], state = 'wait', t0 = 0, to = null;
@@ -1901,34 +1901,34 @@ var G = {
       if (state === 'wait' && round === 0 && b.textContent.indexOf('почеток') >= 0) { next(); return; }
       if (state === 'wait') { clearTimeout(to); b.textContent = 'Прерано! 😅'; tone(220, 140, .25, 'sawtooth', .07); setTimeout(next, 900); return; }
       if (state === 'go') { var ms = Math.round(performance.now() - t0); times.push(ms); round++; state = 'done'; b.className = 'grx'; b.textContent = ms + ' ms'; gHud('Рунда ' + round + ' / 5 · ' + times.join(', '));
-        if (round >= 5) { var avg = Math.round(times.reduce(function (a, c) { return a + c; }, 0) / 5); setTimeout(function () { gEnd('reflex', avg < 450, 'Просек: ' + avg + ' ms', avg, true); }, 700); }
+        if (round >= 5) { var avg = Math.round(times.reduce(function (a, c) { return a + c; }, 0) / 5); setTimeout(function () { gEnd('reflex', avg < 400, 'Просек: ' + avg + ' ms', avg, true); }, 700); }
         else setTimeout(next, 800); } };
   },
   math: function () {   // 60 секунди, двоцифрен × едноцифрен
     var ok = 0, t = 60, q = null, r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
     $('gArea').insertAdjacentHTML('beforeend', '<div class="qq" id="gQ"></div><input id="gIn" type="number" inputmode="numeric" class="gin"><button class="gbtn" id="gOk">Провери</button>');
     var nq = function () { var a = r(), b2 = 2 + Math.floor(Math.random() * 8); q = a * b2; $('gQ').textContent = (Math.random() < .5 ? a + ' × ' + b2 : b2 + ' × ' + a) + ' = ?'; $('gIn').value = ''; $('gIn').focus(); };
-    var chk = function () { if ($('gIn').value === '') return; if (+$('gIn').value === q) { ok++; tone(784, 1175, .12, 'triangle', .1); } else tone(220, 150, .2, 'sawtooth', .06); gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 8'); nq(); };
-    $('gOk').onclick = chk; $('gIn').onkeydown = function (e) { if (e.key === 'Enter') chk(); }; nq(); gHud('⏱ 60 s · точни: 0 / 8');
-    gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 8'); if (t <= 0) gEnd('math', ok >= 8, ok + ' точни задачи за 60 секунди.', ok); }, 1000);
+    var chk = function () { if ($('gIn').value === '') return; if (+$('gIn').value === q) { ok++; tone(784, 1175, .12, 'triangle', .1); } else tone(220, 150, .2, 'sawtooth', .06); gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 10'); nq(); };
+    $('gOk').onclick = chk; $('gIn').onkeydown = function (e) { if (e.key === 'Enter') chk(); }; nq(); gHud('⏱ 60 s · точни: 0 / 10');
+    gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 10'); if (t <= 0) gEnd('math', ok >= 10, ok + ' точни задачи за 60 секунди.', ok); }, 1000);
   },
   pop: function () {   // 24 меурчиња за 10 секунди
-    var LIM = 9, left = 36, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 36 за ' + LIM + ' s!');
+    var LIM = 8.5, left = 36, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 36 за ' + LIM + ' s!');
     for (var i = 0; i < 36; i++) { var b = document.createElement('button'); b.style.background = cols[Math.floor(i / 6)]; grid.appendChild(b);
       b.onpointerdown = function () { if (this.classList.contains('on')) return; if (!t0) { t0 = performance.now(); gTimer = setInterval(function () { var s = (performance.now() - t0) / 1000; gHud('⏱ ' + s.toFixed(1) + ' s · уште ' + left); if (s > LIM) gEnd('pop', false, 'Времето истече! Остануваат ' + left + '.'); }, 100); }
         this.classList.add('on'); left--; popSound(); if (!left) { var s = Math.round((performance.now() - t0) / 100) / 10; gEnd('pop', s <= LIM, 'Ги пукна сите за ' + s + ' s.', s, true); } }; }
   },
   feed: function () {   // squishy со уста се движи горе, фрлај бонбони
     var C = gCanvas(440), mx = C.W / 2, dir = 1, shots = 10, hits = 0, candy = null, last = performance.now(), v = any(gPool()), im = gImg(v), msg = '';
-    gHud('🍬 10 · погодоци 0 / 6'); C.c.addEventListener('pointerdown', function () { if (!candy && shots > 0) { candy = { x: C.W / 2, y: C.H - 40 }; shots--; tone(500, 900, .12, 'triangle', .08); } });
+    gHud('🍬 10 · погодоци 0 / 7'); C.c.addEventListener('pointerdown', function () { if (!candy && shots > 0) { candy = { x: C.W / 2, y: C.H - 40 }; shots--; tone(500, 900, .12, 'triangle', .08); } });
     (function loop(now) { var dt = Math.min(.05, (now - last) / 1000), g = C.g; last = now; mx += dir * (90 + hits * 18) * dt; if (mx > C.W - 50) dir = -1; if (mx < 50) dir = 1;
       g.clearRect(0, 0, C.W, C.H); if (im.complete) g.drawImage(im, mx - 50, 30, 100, 90);
       g.fillStyle = '#16121f'; g.beginPath(); g.ellipse(mx, 108, 16, 10, 0, 0, 6.3); g.fill(); g.fillStyle = '#ff7a8a'; g.beginPath(); g.ellipse(mx, 112, 8, 4, 0, 0, 6.3); g.fill();
       if (candy) { candy.y -= 520 * dt; g.font = '28px system-ui'; g.textAlign = 'center'; g.fillText('🍬', candy.x, candy.y);
-        if (candy.y < 118) { if (Math.abs(candy.x - mx) < 26) { hits++; msg = 'Њам! 😋'; tone(659, 1319, .2, 'triangle', .12); fizz(0, .1); } else { msg = 'Промаши!'; click(400, .2); } candy = null; gHud('🍬 ' + shots + ' · погодоци ' + hits + ' / 6 · ' + msg); } }
+        if (candy.y < 118) { if (Math.abs(candy.x - mx) < 26) { hits++; msg = 'Њам! 😋'; tone(659, 1319, .2, 'triangle', .12); fizz(0, .1); } else { msg = 'Промаши!'; click(400, .2); } candy = null; gHud('🍬 ' + shots + ' · погодоци ' + hits + ' / 7 · ' + msg); } }
       g.font = '30px system-ui'; g.textAlign = 'center'; if (!candy && shots > 0) g.fillText('🍬', C.W / 2, C.H - 30); g.fillStyle = '#a9a3c2'; g.font = '13px system-ui'; g.fillText('Допри за фрлање', C.W / 2, C.H - 8);
-      if (hits >= 6) return gEnd('feed', true, 'Погоди ' + hits + ' пати!', hits);
-      if (shots <= 0 && !candy) return gEnd('feed', hits >= 6, 'Погоди ' + hits + ' од 10.', hits);
+      if (hits >= 7) return gEnd('feed', true, 'Погоди ' + hits + ' пати!', hits);
+      if (shots <= 0 && !candy) return gEnd('feed', hits >= 7, 'Погоди ' + hits + ' од 10.', hits);
       gRaf = requestAnimationFrame(loop); })(last);
   }
 };

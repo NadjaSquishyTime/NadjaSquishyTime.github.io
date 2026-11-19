@@ -1,6 +1,6 @@
 // Ја чува апликацијата на уредот за да работи и без интернет.
 // Кога се објавува нова верзија, смени го бројот подолу за корисниците да ја добијат.
-var CACHE = 'dumpling-vault-v64';
+var CACHE = 'dumpling-vault-v65';
 var FILES = ['./', './index.html', './manifest.json', './icon.svg', './zvuci/omg.m4a', './zvuci/omg2.m4a', './slike/face1.webp', './slike/face2.webp', './slike/intro.webp', './slike/wilma.webp', './slike/card_spgold.webp', './slike/card_spocean.webp', './slike/card_sppeng.webp', './slike/card_spuni.webp', './slike/card_spgoldcorn.webp', './slike/card_spbeads.webp', './slike/card_spgalaxy.webp', './slike/card_spgoldplush.webp', './slike/card_sprainbow.webp'];
 
 self.addEventListener('install', function (e) {
