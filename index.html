@@ -361,7 +361,7 @@ var V = [
   { id: 'spbeads', name: 'Шарени бисери', rar: 'sped', fx: 'sped', sfx: 'sped', face: 'beadcute', mat: 'gel', c: ['#ffffff', '#f6f2ff', '#cfc6e6'], a: .35, beads: ['#ff5d9e', '#ff9a3c', '#3fd2c4', '#b56bff', '#ff5f8f', '#4dc3ff'] },
   { id: 'spgalaxy', name: 'Галакси ѕвездичка', rar: 'sped', fx: 'sped', sfx: 'sped', face: 'galaxy', mat: 'gel', c: ['#6f8cff', '#2a2f9e', '#0b0e3a'], neb: ['#b56bff', '#4fc3ff', '#ff7bd5'], gl: ['#ffffff'], gn: 70 },
   { id: 'spgoldplush', name: 'Златен плиш', rar: 'sped', fx: 'sped', sfx: 'sped', face: 'embroid', plush: 1, mat: 'plush', feet: 1, c: ['#ffe7a6', '#e3a93a', '#a8701a'] },
-  { id: 'sprainbow', name: 'Виножито плиш', rar: 'sped', fx: 'sped', sfx: 'sped', face: 'embroid', plush: 1, mat: 'plush', feet: 1, feetc: '#c9a8ff', c: ['#fff3f8', '#ffd6a8', '#c9b8ff'], neb: ['#ff9ecf', '#ffe59e', '#9effc5', '#9ed8ff', '#d19eff'] },
+  { id: 'sprainbow', name: 'Виножито плиш', rar: 'sped', fx: 'sped', sfx: 'sped', face: 'embroid', plush: 1, mat: 'plush', feet: 1, feetc: '#c9a8ff', c: ['#fff6d8', '#ffd6a8', '#b9a6e6'], rainbowH: ['#c9a8ff', '#ffa8c8', '#ffe58a', '#a8f0d8'] },
   { id: 'king2', name: 'King Squishy II', rar: 'ooak', shape: 'face2', photo: 'slike/face2.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'king', name: 'King Squishy', rar: 'ooak', shape: 'face1', photo: 'slike/face1.webp', noface: 1, crown: 1, only: ['ba3a575a3084439b', '069496a50bd67643'], fx: 'king', sfx: 'king', glow: '#ffd23f', c: ['#fbe6c4', '#eec98f', '#c99a5c'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
@@ -846,6 +846,8 @@ function draw(g, P, v, time) {
 
   g.save(); outline(); g.clip();
   if (v.ombre) { var og = g.createLinearGradient(0, minY, 0, maxY); og.addColorStop(0, v.ombre[0]); og.addColorStop(.55, v.ombre[1]); og.addColorStop(1, v.ombre[2]); g.globalAlpha = .8; g.fillStyle = og; g.fillRect(minX, minY, maxX - minX, maxY - minY); g.globalAlpha = 1; }
+  if (v.rainbowH) { var rh = g.createLinearGradient(minX, 0, maxX, 0); v.rainbowH.forEach(function (c, k) { rh.addColorStop(k / (v.rainbowH.length - 1), c); });   // виножито лево-десно
+    g.globalAlpha = .9; g.fillStyle = rh; g.fillRect(minX, minY, maxX - minX, maxY - minY); g.globalAlpha = 1; }
   if (v.neb) v.neb.forEach(function (c, k) { soft(B(N * (.2 + k * .33) + Math.sin(time * .4 + k) * 2, .5), 95, c, .6); });
   if (v.swirl) v.swirl.forEach(function (c, k) {
     g.beginPath(); var a = B(N * (.72 + k * .1), .85), b = B(N * (.95 + k * .12), .25), e = B(N * (.3 + k * .1), .8);
@@ -1535,7 +1537,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-1';
+var APP_VER = '2026-11-19-2';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
