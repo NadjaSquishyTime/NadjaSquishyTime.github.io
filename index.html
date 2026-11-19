@@ -1479,7 +1479,11 @@ function rareRoll() {
   for (var id in w) if (w[id] === me && !SV.won[id] && (SV.opens || 0) >= RARE_MIN && Math.random() < RARE_P) { SV.won[id] = 1; return byId(id); }
   return null;
 }
-function canHave(v) { return !v.only || v.only.indexOf(myHash()) >= 0; }   // only: само овие кодови можат да го имаат (King: Надја и Деа)
+var TESTER = 'c6267e36b14de7e5';   // C6267E: код на сопственикот за тестирање — ги има сите squishies, без статистика
+function isTester() { return myHash() === TESTER; }
+function canHave(v) { return !v.only || isTester() || v.only.indexOf(myHash()) >= 0; }
+function unlockAll() { if (!isTester()) return; var ch = false; V.forEach(function (v) { if (!SV.owned[v.id]) { SV.owned[v.id] = 1; ch = true; } }); if (ch) { save(); if (!document.querySelector('.screen.open')) home(); } }
+setTimeout(unlockAll, 400);   // only: само овие кодови можат да го имаат (King: Надја и Деа)
 function cleanOnly() { var ch = false; V.forEach(function (v) { if (v.only && SV.owned[v.id] && !canHave(v)) { delete SV.owned[v.id]; ch = true; } });   // тргни ги од колекцијата кај другите
   if (SV.force) SV.force = SV.force.filter(function (f) { var v = byId(f.id); return v && canHave(v); }); if (ch) { save(); if (!document.querySelector('.screen.open')) home(); } }
 setTimeout(cleanOnly, 500); setInterval(cleanOnly, 5000);
@@ -1577,7 +1581,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-9';
+var APP_VER = '2026-11-19-10';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1726,7 +1730,8 @@ if (location.hash === '#stats') setTimeout(function () {
     .catch(function (e) { alert(lines.concat(['Резултат: ГРЕШКА ❌ ' + e]).join('\n')); });
 }, 1500);
 function sendStats() {
-  if (!STATS_URL) return; var me = myHash(); if (!me) return; var a = SV.act || { total: 0, days: {} }, n = 0; for (var k in SV.owned) n += SV.owned[k];
+  if (!STATS_URL || isTester()) return;   // тест-корисникот не влегува во статистиката
+  var me = myHash(); if (!me) return; var a = SV.act || { total: 0, days: {} }, n = 0; for (var k in SV.owned) n += SV.owned[k];
   var data = JSON.stringify({ id: statId(), day: today(), today: a.days[today()] || 0, total: a.total, squeezes: SV.sq || 0, owned: n, opens: SV.opens || 0 });
   // fetch (no-cors, keepalive) е посигурно за Google Apps Script од sendBeacon; sendBeacon е резерва
   var beacon = function () { try { if (navigator.sendBeacon) navigator.sendBeacon(STATS_URL, data); } catch (e) {} };
