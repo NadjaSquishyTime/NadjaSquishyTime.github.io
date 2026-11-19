@@ -1808,7 +1808,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-32';
+var APP_VER = '2026-11-19-33';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1921,11 +1921,12 @@ var G = {
   feed: function () {   // squishy со уста се движи горе, фрлај бонбони
     var C = gCanvas(440), mx = C.W / 2, dir = 1, shots = 10, hits = 0, candy = null, last = performance.now(), v = any(gPool()), im = gImg(v), msg = '';
     gHud('🍬 10 · погодоци 0 / 7'); C.c.addEventListener('pointerdown', function () { if (!candy && shots > 0) { candy = { x: C.W / 2, y: C.H - 40 }; shots--; tone(500, 900, .12, 'triangle', .08); } });
-    (function loop(now) { var dt = Math.min(.05, (now - last) / 1000), g = C.g; last = now; mx += dir * (90 + hits * 18) * dt; if (mx > C.W - 50) dir = -1; if (mx < 50) dir = 1;
+    (function loop(now) { var dt = Math.min(.05, (now - last) / 1000), g = C.g; last = now; if (Math.random() < dt * .9) dir = -dir;   // ненадејно менува насока
+      mx += dir * (130 + hits * 22) * dt; if (mx > C.W - 50) dir = -1; if (mx < 50) dir = 1;
       g.clearRect(0, 0, C.W, C.H); if (im.complete) g.drawImage(im, mx - 50, 30, 100, 90);
       g.fillStyle = '#16121f'; g.beginPath(); g.ellipse(mx, 108, 16, 10, 0, 0, 6.3); g.fill(); g.fillStyle = '#ff7a8a'; g.beginPath(); g.ellipse(mx, 112, 8, 4, 0, 0, 6.3); g.fill();
       if (candy) { candy.y -= 520 * dt; g.font = '28px system-ui'; g.textAlign = 'center'; g.fillText('🍬', candy.x, candy.y);
-        if (candy.y < 118) { if (Math.abs(candy.x - mx) < 26) { hits++; msg = 'Њам! 😋'; tone(659, 1319, .2, 'triangle', .12); fizz(0, .1); } else { msg = 'Промаши!'; click(400, .2); } candy = null; gHud('🍬 ' + shots + ' · погодоци ' + hits + ' / 7 · ' + msg); } }
+        if (candy.y < 118) { if (Math.abs(candy.x - mx) < 18) { hits++; msg = 'Њам! 😋'; tone(659, 1319, .2, 'triangle', .12); fizz(0, .1); } else { msg = 'Промаши!'; click(400, .2); } candy = null; gHud('🍬 ' + shots + ' · погодоци ' + hits + ' / 7 · ' + msg); } }
       g.font = '30px system-ui'; g.textAlign = 'center'; if (!candy && shots > 0) g.fillText('🍬', C.W / 2, C.H - 30); g.fillStyle = '#a9a3c2'; g.font = '13px system-ui'; g.fillText('Допри за фрлање', C.W / 2, C.H - 8);
       if (hits >= 7) return gEnd('feed', true, 'Погоди ' + hits + ' пати!', hits);
       if (shots <= 0 && !candy) return gEnd('feed', hits >= 7, 'Погоди ' + hits + ' од 10.', hits);
