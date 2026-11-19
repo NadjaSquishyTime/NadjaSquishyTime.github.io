@@ -408,6 +408,7 @@ var V = [
   { id: 'crcandy', name: 'Шеќерни кристали', rar: 'epic', mat: 'crunch', c: ['#fff0fa', '#ffb8e6', '#d070b8'], a: .5, rock: ['#ff7ab0', '#7fd0ff', '#ffe14d', '#b56bff', '#7dffb0'], gl: ['#ffffff'], gn: 20 },
   { id: 'popit', name: 'Pop It виножито', rar: 'vrare', shape: 'ball', popit: 1, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
   { id: 'popit2', name: 'Pop It пастел', rar: 'rare', shape: 'ball', popit: 2, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
+  { id: 'poopfly', name: 'Смрдливко со мува', rar: 'golden', shape: 'poop', noface: 1, top: ['googly'], flies: 1, sfx: 'buzz', mat: 'gel', c: ['#c99a6a', '#8a5a2e', '#4a2c12'], a: .62, gl: ['#fff3c6'], gn: 10, glow: '#9a7a3a' },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -1050,6 +1051,8 @@ function draw(g, P, v, time) {
       else { gr.addColorStop(0, 'rgba(255,255,255,.75)'); gr.addColorStop(.55, 'rgba(255,255,255,.08)'); gr.addColorStop(1, 'rgba(0,0,0,.28)'); }   // испакнато
       g.fillStyle = gr; g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.3); g.fill();
       g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 1.5; g.stroke(); }); }
+  if (v.flies) { var fz2 = v === cur ? hand.q * hand.h : 0, fsp = 1 + fz2 * 3;   // мува внатре во гелот
+    var fi2 = { x: cx + Math.sin(time * 1.7 * fsp) * (maxX - minX) * .25, y: cy + Math.cos(time * 2.3 * fsp) * (maxY - minY) * .18 }; g.globalAlpha = .85; drawFly(g, fi2.x, fi2.y, 1.25, time * 40, Math.atan2(Math.cos(time * 1.7 * fsp), -Math.sin(time * 2.3 * fsp))); g.globalAlpha = 1; }
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   if (v.pat) PAT[v.pat](g, B, v, rng(hash(v.id) + 7), minX, minY, maxX, maxY);
   if (v.inner) innerItems(g, B, v);
@@ -1149,6 +1152,8 @@ function draw(g, P, v, time) {
       [le, re].forEach(function (e) { var k = e.x < cx; var lg2 = g.createLinearGradient(e.x, e.y, e.x + (k ? -260 : 260), e.y - 140); lg2.addColorStop(0, 'rgba(255,60,60,.95)'); lg2.addColorStop(1, 'rgba(255,60,60,0)');
         g.strokeStyle = lg2; g.lineWidth = 7 * pw; g.lineCap = 'round'; g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(e.x + (k ? -260 : 260), e.y - 140); g.stroke();
         g.strokeStyle = 'rgba(255,240,240,.9)'; g.lineWidth = 2; g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(e.x + (k ? -180 : 180), e.y - 97); g.stroke(); }); } }
+  if (v.flies) for (var fo = 0; fo < 3; fo++) { var fa2 = time * (1.3 + fo * .4) + fo * 2.1, frx = (maxX - minX) * (.62 + fo * .08), fry = (maxY - minY) * (.55 + fo * .1);   // муви што кружат
+    drawFly(g, cx + Math.cos(fa2) * frx + Math.sin(time * 9 + fo) * 4, cy - 10 + Math.sin(fa2 * 1.3) * fry + Math.cos(time * 11 + fo) * 4, 1.2, time * 45 + fo, fa2 + 1.57); }
   if (v.horn) { var hp0 = B(0, 1), hw = 11, hh = 44;   // спирален рог
     var hg2 = g.createLinearGradient(hp0.x - hw, 0, hp0.x + hw, 0); hg2.addColorStop(0, 'rgba(255,255,255,.55)'); hg2.addColorStop(.5, v.c[0]); hg2.addColorStop(1, v.c[1]);
     g.fillStyle = hg2; g.globalAlpha = .92; g.beginPath(); g.moveTo(hp0.x - hw, hp0.y + 8); g.lineTo(hp0.x, hp0.y - hh); g.lineTo(hp0.x + hw, hp0.y + 8); g.closePath(); g.fill(); g.globalAlpha = 1;
@@ -1282,7 +1287,7 @@ function say(text) {   // „O M G, …“ се пушта од снимката
   speak(text);
 }
 function any(a) { return a[Math.floor(Math.random() * a.length)]; }
-function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else if (cur && cur.sfx === 'hero' && Math.random() < .5) say(any(['Super power!', 'Thunder power!', 'Hero time!', 'Zap zap!'])); else if (cur && cur.sfx === 'sped' && Math.random() < .45) say(any(['Special squish!', 'So special!', 'Sparkly!', 'Wow, this is wonderful!'])); else if (cur && cur.sfx === 'king' && Math.random() < .5) say(any(['Your Majesty!', 'Long live the King!', 'King squishy!'])); else say(any(CHEERS)); }
+function cheer() { if (cur && cur.mat === 'crunch' && Math.random() < .5) say('So rising crunch!'); else if (cur && cur.id === 'tennis' && Math.random() < .4) say('Ace!'); else if (cur && cur.sfx === 'globe' && Math.random() < .4) say('Let it snow!'); else if (cur && cur.sfx === 'jingle' && Math.random() < .4) say('Jingle jingle!'); else if (cur && cur.sfx === 'buzz' && Math.random() < .5) say(any(['Ewww!', 'Stinky!', 'Bzzzz!', 'Oh no, a fly!'])); else if (cur && cur.sfx === 'hero' && Math.random() < .5) say(any(['Super power!', 'Thunder power!', 'Hero time!', 'Zap zap!'])); else if (cur && cur.sfx === 'sped' && Math.random() < .45) say(any(['Special squish!', 'So special!', 'Sparkly!', 'Wow, this is wonderful!'])); else if (cur && cur.sfx === 'king' && Math.random() < .5) say(any(['Your Majesty!', 'Long live the King!', 'King squishy!'])); else say(any(CHEERS)); }
 function omg() { return 'O M G, ' + any(NAMES) + '!'; }
 function burst(dur, type, freq, vol, delay) {   // подолг шум: гром, шиштење
   var c = audio(); if (!c) return; var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
@@ -1300,6 +1305,21 @@ function fizz(delay, vol) {   // едно меурче: краток „плоп
 function popSound() {   // „поп“ на силиконско меурче
   var c = audio(); if (!c) return; var f = 260 + Math.random() * 120;
   tone(f * 2.2, f, .07, 'sine', .35); click(1200 + Math.random() * 600, .35); burst(.03, 'bandpass', 900, .25); if (navigator.vibrate) navigator.vibrate(8);
+}
+function drawFly(g, x, y, k, flap, ang) {   // мала мува: тело, очи, крилја што трепкаат
+  g.save(); g.translate(x, y); g.rotate(ang || 0); g.scale(k, k);
+  g.globalAlpha *= 1; var w = .5 + .5 * Math.abs(Math.sin(flap)); g.fillStyle = 'rgba(210,235,255,' + (.45 + w * .3) + ')';
+  g.beginPath(); g.ellipse(-5, -5 - w * 3, 7, 3.6 + w * 2, -.5, 0, 6.3); g.fill(); g.beginPath(); g.ellipse(5, -5 - w * 3, 7, 3.6 + w * 2, .5, 0, 6.3); g.fill();
+  g.fillStyle = '#1a1a22'; g.beginPath(); g.ellipse(0, 1, 4.2, 6.5, 0, 0, 6.3); g.fill(); dot(g, { x: 0, y: -6 }, 3.6, '#1a1a22');
+  dot(g, { x: -2.2, y: -7.4 }, 1.8, '#c81e3a'); dot(g, { x: 2.2, y: -7.4 }, 1.8, '#c81e3a');
+  g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = .8; g.beginPath(); g.moveTo(-3, 0); g.lineTo(3, 0); g.moveTo(-3, 3); g.lineTo(3, 3); g.stroke(); g.restore();
+}
+function flyBuzz(dur, vol) {   // зуење на мува: пила-бран со треперење на висината
+  var c = audio(); if (!c) return; var t = c.currentTime, o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 190 + Math.random() * 60; lfo.frequency.value = 7 + Math.random() * 6; lg.gain.value = 22 + Math.random() * 18;
+  lfo.connect(lg); lg.connect(o.frequency); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = .9;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .08); g.gain.setValueAtTime(vol, t + dur * .6); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); lfo.start(t); o.stop(t + dur + .05); lfo.stop(t + dur + .05);
 }
 function tennisHit() {   // удар со рекет по тениско топче: „поп!“ + одбивање од теренот
   var c = audio(); if (!c) return;
@@ -1444,6 +1464,7 @@ function frame(now) {
   g2.clearRect(0, 0, W, H);
   if (hand.h > .02) drawFinger(g2, fl[2]);
   draw(g2, P, cur, now / 1000);
+  if (cur.sfx === 'buzz' && Math.random() < dt * (.25 + hand.q * 2)) flyBuzz(.5 + Math.random() * .7, .04 + hand.q * .06);   // муви зујат околу
   if (cur.popit && cur._bp && hand.down && hand.q > .3) {   // меурчињата под прстите пукаат
     fingerList().forEach(function (F) { cur._bp.forEach(function (b, k) { if (!cur._pop[k] && Math.hypot(b.x - F.x, b.y - F.y) < F.r + b.r * .8) { cur._pop[k] = 1; popSound(); } }); });
     if (cur._bp.length && Object.keys(cur._pop).length >= cur._bp.length) { cur._pop = {}; [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .18, 'triangle', .12, .1 + k * .07); }); }   // сите пукнати → одново
@@ -1472,6 +1493,7 @@ function up() {
   if (hand.peak > .45 && cur.sfx === 'sped') { var pent = [1047, 1175, 1319, 1568, 1760, 2093]; [0, 1, 2].forEach(function (k) { var f = any(pent); tone(f, f, .35, 'triangle', .09, k * .08); tone(f * 2, f * 2, .2, 'sine', .03, k * .08); }); fizz(.05, .07); fizz(.15, .06); }
   if (hand.peak > .45 && cur.sfx === 'king') [523, 659, 784].forEach(function (f, k) { tone(f, f, .22, 'sawtooth', .04, k * .1); tone(f, f, .25, 'triangle', .1, k * .1); });
   if (hand.peak > .45 && cur.sfx === 'racket') tennisHit();
+  if (hand.peak > .45 && cur.sfx === 'buzz') { flyBuzz(1.4, .12); setTimeout(function () { flyBuzz(1, .08); }, 350); }
   if (hand.peak > .45 && cur.mat === 'crunch' && !cur.bar) { for (var cb = 0; cb < 9; cb++) click(1600 + Math.random() * 3800, .3 + Math.random() * .2, cb * .025 + Math.random() * .02);
     burst(.18, 'highpass', 2400, .35); if (cur.crust) cur._ck = Math.min(1, (cur._ck || 0) + .35); if (navigator.vibrate) navigator.vibrate([12, 20, 12]); }
   if (hand.peak > .45 && cur.sfx === 'hero') { click(3200, .5); burst(1.1, 'lowpass', 170, .9); tone(85, 30, 1, 'sawtooth', .14, .05); tone(1800, 300, .35, 'square', .05); tone(2400, 600, .3, 'sawtooth', .04, .05);
@@ -1704,6 +1726,7 @@ $('box').addEventListener('click', function () {
   setTimeout(function () {
     if (gold) say('Golden! ' + omg());
     else if (prizeV.id === 'tennis') say('Ace! ' + omg());
+    else if (prizeV.id === 'poopfly') { say('Ewww! Stinky! ' + omg()); flyBuzz(2, .12); }
     else if (prizeV.id === 'thunderhero') say('Super power! ' + omg());
     else if (prizeV.rar === 'sped') say('Special squish! ' + omg());
     else if (prizeV.id === 'king' || prizeV.id === 'king2') say('All hail the King! ' + omg());
@@ -1753,7 +1776,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-24';
+var APP_VER = '2026-11-19-25';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
