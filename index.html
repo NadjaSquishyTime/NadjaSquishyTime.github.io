@@ -406,6 +406,8 @@ var V = [
   { id: 'crpop', name: 'Пуканки', rar: 'rare', mat: 'crunch', c: ['#fffdf4', '#fff1c6', '#e8c66a'], a: .5, popc: 1 },
   { id: 'crbeads', name: 'Крцкави бисери', rar: 'vrare', mat: 'crunch', c: ['#ffffff', '#f6f2ff', '#cfc6e6'], a: .4, beads: ['#ff5d9e', '#ffd166', '#4da3ff', '#b56bff', '#6ef08a', '#ff8a4d'] },
   { id: 'crcandy', name: 'Шеќерни кристали', rar: 'epic', mat: 'crunch', c: ['#fff0fa', '#ffb8e6', '#d070b8'], a: .5, rock: ['#ff7ab0', '#7fd0ff', '#ffe14d', '#b56bff', '#7dffb0'], gl: ['#ffffff'], gn: 20 },
+  { id: 'popit', name: 'Pop It виножито', rar: 'vrare', shape: 'ball', popit: 1, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
+  { id: 'popit2', name: 'Pop It пастел', rar: 'rare', shape: 'ball', popit: 2, noface: 1, mat: 'taba', c: ['#ffffff', '#f2f2f2', '#cccccc'] },
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
@@ -1036,6 +1038,18 @@ function draw(g, P, v, time) {
       for (var cl = 0; cl < 9; cl++) { var c0 = B(cr() * N * .5 + N * .75, .15 + cr() * .3); g.beginPath(); g.moveTo(c0.x, c0.y); var cx2 = c0.x, cy2 = c0.y;
         for (var cs = 0; cs < 4; cs++) { cx2 += (cr() - .5) * 40 * ck; cy2 += (cr() - .2) * 18 * ck; g.lineTo(cx2, cy2); } g.stroke(); } }
     var sh = rng(88); for (var sg = 0; sg < 30; sg++) { var sp2 = B(sh() * N * .5 + N * .75, sh() * .9); g.globalAlpha = .4 + .5 * Math.abs(Math.sin(time * 3 + sg)); dot(g, sp2, 1.6, '#fff3c6'); } g.globalAlpha = 1; }
+  if (v.popit) { var PC = v.popit === 2 ? ['#ffb3c8', '#ffd6a5', '#fdffb6', '#caffbf', '#a0e7ff', '#cdb4ff'] : ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'];
+    var bh = (maxY - minY) / PC.length; PC.forEach(function (c, k) { g.fillStyle = c; g.fillRect(minX - 4, minY + k * bh, maxX - minX + 8, bh + 1); });
+    var bp = [], rows = 6, R = (maxY - minY) / (rows * 2.25);
+    for (var r = 0; r < rows; r++) for (var q = -4; q <= 4; q++) { var bx2 = cx + q * R * 2.3 + (r % 2 ? R * 1.15 : 0), by2 = minY + (r + .55) * (maxY - minY) / rows;
+      if (Math.hypot((bx2 - cx) / ((maxX - minX) / 2 - R * 1.1), (by2 - cy) / ((maxY - minY) / 2 - R * 1.1)) > 1) continue; bp.push({ x: bx2, y: by2, r: R }); }
+    v._bp = bp; v._pop = v._pop || {};
+    bp.forEach(function (b, k) { var popped = v._pop[k];
+      var gr = g.createRadialGradient(b.x - b.r * .35, b.y - b.r * .4, b.r * .1, b.x, b.y, b.r);
+      if (popped) { gr.addColorStop(0, 'rgba(0,0,0,.28)'); gr.addColorStop(.7, 'rgba(0,0,0,.12)'); gr.addColorStop(1, 'rgba(255,255,255,.35)'); }   // вдлабнато
+      else { gr.addColorStop(0, 'rgba(255,255,255,.75)'); gr.addColorStop(.55, 'rgba(255,255,255,.08)'); gr.addColorStop(1, 'rgba(0,0,0,.28)'); }   // испакнато
+      g.fillStyle = gr; g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.3); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 1.5; g.stroke(); }); }
   if (d.fz) { d.fz.forEach(function (f) { g.globalAlpha = .13; dot(g, B(f.i, f.t), 1.5, f.c); }); g.globalAlpha = 1; }   // влакненца на плишот
   if (v.pat) PAT[v.pat](g, B, v, rng(hash(v.id) + 7), minX, minY, maxX, maxY);
   if (v.inner) innerItems(g, B, v);
@@ -1283,6 +1297,10 @@ function fizz(delay, vol) {   // едно меурче: краток „плоп
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .08, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + .07);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .09);
 }
+function popSound() {   // „поп“ на силиконско меурче
+  var c = audio(); if (!c) return; var f = 260 + Math.random() * 120;
+  tone(f * 2.2, f, .07, 'sine', .35); click(1200 + Math.random() * 600, .35); burst(.03, 'bandpass', 900, .25); if (navigator.vibrate) navigator.vibrate(8);
+}
 function tennisHit() {   // удар со рекет по тениско топче: „поп!“ + одбивање од теренот
   var c = audio(); if (!c) return;
   burst(.06, 'bandpass', 1400, .9); click(2600, .55); tone(260, 120, .09, 'triangle', .35);   // удар во жиците
@@ -1426,6 +1444,10 @@ function frame(now) {
   g2.clearRect(0, 0, W, H);
   if (hand.h > .02) drawFinger(g2, fl[2]);
   draw(g2, P, cur, now / 1000);
+  if (cur.popit && cur._bp && hand.down && hand.q > .3) {   // меурчињата под прстите пукаат
+    fingerList().forEach(function (F) { cur._bp.forEach(function (b, k) { if (!cur._pop[k] && Math.hypot(b.x - F.x, b.y - F.y) < F.r + b.r * .8) { cur._pop[k] = 1; popSound(); } }); });
+    if (cur._bp.length && Object.keys(cur._pop).length >= cur._bp.length) { cur._pop = {}; [523, 659, 784, 1047].forEach(function (f, k) { tone(f, f, .18, 'triangle', .12, .1 + k * .07); }); }   // сите пукнати → одново
+  }
   if (hand.h > .02) { drawFinger(g2, fl[0]); drawFinger(g2, fl[1]); }
   liveSound(clamp(sp * .5 + Math.abs(hand.q - lastQ) * 6, 0, 1.5), hand.q, def, mat); lastQ = hand.q;
   $('meter').style.width = clamp(hand.q, 0, 1) * 100 + '%';
@@ -1731,7 +1753,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-23';
+var APP_VER = '2026-11-19-24';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
