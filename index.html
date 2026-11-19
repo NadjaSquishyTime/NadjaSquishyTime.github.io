@@ -409,6 +409,12 @@ var V = [
   { id: 'crystal', name: 'Кристал', rar: 'legend', c: ['#ffffff', '#e6faff', '#a8dff2'], a: .45, chunk: ['#ffffff', '#9fe8ff', '#ffc2f0', '#ffe9a8', '#b8ffd9'], gl: ['#ffffff', '#9fe8ff', '#ffc2f0'], gn: 40, big: 1, mat: 'crunch' },
   { id: 'trio', name: 'Тројка во кристал', rar: 'legend', c: ['#ffffff', '#f1faff', '#bcd9e6'], a: .3, minis: 1, chunk: ['#ffd700', '#fff3a6', '#f7c948', '#ffe9a8'], gl: ['#fff3a6'], gn: 30, mat: 'gel' },
   { id: 'aurora', name: 'Аурора', rar: 'legend', c: ['#ecfff7', '#74ecc4', '#2f6fd0'], a: .9, neb: ['#b56bff', '#58ffd0', '#ff7bd5'], gl: ['#ffffff'], gn: 44, mat: 'gel' },
+  { id: 'barstraw', name: 'Јагода во бела чоколада', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#fff0f4', '#ff9ab8', '#e0507e'], coat: ['#fffaf0', '#f4e6d0', '#d9c2a0'], topping: 'dots', topc: ['#e8324a', '#ff6b8e', '#c81e3a'] },
+  { id: 'barvanilla', name: 'Ванила со бадем', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#fffbea', '#fff1c0', '#e8d08a'], coat: ['#a8683e', '#7a4526', '#552c16'], topc: ['#f2d6a8', '#d9b07a'] },
+  { id: 'barblue', name: 'Боровинка во темна', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#f2eaff', '#a98ae6', '#6a44b8'], coat: ['#3a2418', '#24140c', '#140a04'], topping: 'dots', topc: ['#4a5ad6', '#6a7aee', '#ffffff'] },
+  { id: 'barcaramel', name: 'Карамел кикирики', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#fff4e0', '#f2b866', '#c97a1e'], coat: ['#7a4a2a', '#5a3218', '#3a1e0c'], topc: ['#e8b46a', '#c98a3a'] },
+  { id: 'barmint', name: 'Мента со капки', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#effff8', '#9ff0cf', '#3fc08f'], coat: ['#4a2c1c', '#30180c', '#1a0c04'], topping: 'chips', topc: ['#1a0c04'] },
+  { id: 'barparty', name: 'Роденденски сладолед', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#fffdf4', '#fff3d0', '#f0d48a'], coat: ['#ffd6e8', '#ffa8cf', '#e070a8'], topping: 'spr', topc: ['#ff5d9e', '#4da3ff', '#ffd166', '#6ef08a', '#b56bff', '#ffffff'] },
   { id: 'pistachio', name: 'Сладолед пистаќ', rar: 'epic', shape: 'bar', bar: 1, mat: 'crunch', c: ['#f3ffd0', '#b6e05a', '#78a82a'] },
   { id: 'gold', name: 'Златна', rar: 'golden', c: ['#fff8cf', '#f2c230', '#a8700f'], gold: 1, a: .72, foil: 1, chunk: ['#fff3a6', '#ffd700', '#fffbe0', '#e0a020', '#f7c948'], gl: ['#ffffff', '#fff3a6'], gn: 24 }
 ];
@@ -745,7 +751,7 @@ var FACE = {
 // ---------- Цртање ----------
 function shell(g, B, d, v, minX, minY, maxX, maxY) {
   var L = v._crack || 0, pr = v === cur ? hand.q * hand.h : 0;
-  var cg = g.createLinearGradient(minX, minY, maxX, maxY); cg.addColorStop(0, '#6b3d26'); cg.addColorStop(.5, '#4a2818'); cg.addColorStop(1, '#2e170c');
+  var co = v.coat || ['#6b3d26', '#4a2818', '#2e170c'], cg = g.createLinearGradient(minX, minY, maxX, maxY); cg.addColorStop(0, co[0]); cg.addColorStop(.5, co[1]); cg.addColorStop(1, co[2]);
   d.shell.forEach(function (c) {
     var pts = c.pts.map(function (q) { return B(q.fi, q.t); }), cx = 0, cy = 0;
     pts.forEach(function (p) { cx += p.x; cy += p.y; }); cx /= pts.length; cy /= pts.length;
@@ -759,7 +765,11 @@ function shell(g, B, d, v, minX, minY, maxX, maxY) {
     if (!gap && L > c.th * .6) { path(); g.strokeStyle = 'rgba(15,5,0,' + clamp((L - c.th * .6) / (c.th * .4), 0, 1) * .8 + ')'; g.lineWidth = 1.6; g.stroke(); }   // пукнатина
     var cs = c.c.map(function (q) { return B(q.fi, q.t); });
     c.nuts.forEach(function (n) { var x = 0, y = 0; n.w.forEach(function (w, i) { x += cs[i].x * w; y += cs[i].y * w; }); var p = T({ x: x, y: y });
-      g.save(); g.translate(p.x, p.y); g.rotate(n.rot); g.fillStyle = n.k ? '#d39a5c' : '#b8743a'; g.beginPath(); g.moveTo(-n.s, -n.s * .6); g.lineTo(n.s, -n.s * .8); g.lineTo(n.s * .7, n.s * .7); g.lineTo(-n.s * .8, n.s * .5); g.closePath(); g.fill();
+      g.save(); g.translate(p.x, p.y); g.rotate(n.rot);
+      if (v.topping === 'spr') { g.fillStyle = v.topc[Math.floor(n.rot * 10) % v.topc.length]; g.beginPath(); g.roundRect(-n.s * .9, -n.s * .28, n.s * 1.8, n.s * .56, n.s * .28); g.fill(); g.restore(); return; }   // шарени прскалки
+      if (v.topping === 'dots') { dot(g, { x: 0, y: 0 }, n.s * .6, v.topc[Math.floor(n.rot * 10) % v.topc.length]); dot(g, { x: -n.s * .2, y: -n.s * .2 }, n.s * .2, 'rgba(255,255,255,.6)'); g.restore(); return; }   // топчиња / бобинки
+      if (v.topping === 'chips') { g.fillStyle = v.topc[0]; g.beginPath(); g.moveTo(0, -n.s * .8); g.lineTo(n.s * .7, n.s * .5); g.lineTo(-n.s * .7, n.s * .5); g.closePath(); g.fill(); g.restore(); return; }   // чоколадни капки
+      g.fillStyle = v.topc ? v.topc[n.k ? 0 : 1] : (n.k ? '#d39a5c' : '#b8743a'); g.beginPath(); g.moveTo(-n.s, -n.s * .6); g.lineTo(n.s, -n.s * .8); g.lineTo(n.s * .7, n.s * .7); g.lineTo(-n.s * .8, n.s * .5); g.closePath(); g.fill();
       g.fillStyle = 'rgba(255,240,210,.5)'; g.fillRect(-n.s * .5, -n.s * .5, n.s * .6, n.s * .35); g.restore(); });
   });
 }
@@ -1721,7 +1731,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-22';
+var APP_VER = '2026-11-19-23';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
