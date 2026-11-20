@@ -234,7 +234,7 @@
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn sp" id="spBtn"><div class="ico">🧺</div><div><b>Special Box ✨</b><small id="spN"></small></div></button>
-    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>7 игри · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
+    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>6 игри · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
     <button class="boxbtn tr" id="trBtn"><div class="ico">⇄</div><div><b>Размена</b><small>Испрати или прими кнедла од пријател</small></div></button>
     <div class="prog"><span id="progT"></span><button id="oddsBtn">Шанси</button></div>
@@ -1808,7 +1808,7 @@ var SP_CHANCE = .4;   // шанса Special Box да даде Special Edition (�
 function spRoll() { var all = V.filter(function (v) { return v.rar === 'sped'; }), nw = all.filter(function (v) { return !SV.owned[v.id]; });
   if (Math.random() < SP_CHANCE) return any(nw.length ? nw : all);
   return any(V.filter(function (v) { return (v.rar === 'epic' || v.rar === 'legend' || v.rar === 'special') && !v.advent && !v.season && !v.only; })); }
-$('spBtn').addEventListener('click', function () { if (SV.sboxes) quizStart('sbox'); });   // услов: реши задача
+$('spBtn').addEventListener('click', function () { if (SV.sboxes) openSpecialBox(); });
 function openSpecialBox() {
   if (!SV.sboxes) return; audio(); SV.sboxes--; prizeV = spRoll(); taps = 0;
   var o = $('open'), r = RAR[prizeV.rar]; o.className = 'screen open'; o.style.setProperty('--rc', '#ff7bd5');
@@ -1885,7 +1885,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-10';
+var APP_VER = '2026-11-20-11';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1907,7 +1907,6 @@ var GAMES = [
   { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 10-те парови (20 полиња) во најмногу 23 обиди' },
   { id: 'squeeze', n: '🤜 Squeeze рекорд', d: 'Стисни 52 пати за 15 секунди' },
   { id: 'reflex', n: '⚡ Рефлекси', d: '5 рунди, просек под 400 ms' },
-  { id: 'math', n: '🧮 Математички маратон', d: '10 точни задачи за 60 секунди' },
   { id: 'pop', n: '🫧 Pop It брзина', d: 'Пукни ги сите 36 меурчиња за 8,5 секунди' },
   { id: 'feed', n: '🎯 Нахрани го squishy-то', d: '7 погодоци од 10 бонбони' }
 ];
@@ -1980,14 +1979,6 @@ var G = {
       if (state === 'go') { var ms = Math.round(performance.now() - t0); times.push(ms); round++; state = 'done'; b.className = 'grx'; b.textContent = ms + ' ms'; gHud('Рунда ' + round + ' / 5 · ' + times.join(', '));
         if (round >= 5) { var avg = Math.round(times.reduce(function (a, c) { return a + c; }, 0) / 5); setTimeout(function () { gEnd('reflex', avg < 400, 'Просек: ' + avg + ' ms', avg, true); }, 700); }
         else setTimeout(next, 800); } };
-  },
-  math: function () {   // 60 секунди, двоцифрен × едноцифрен
-    var ok = 0, t = 60, q = null, r = function () { var n; do n = 11 + Math.floor(Math.random() * 89); while (n % 10 === 0); return n; };
-    $('gArea').insertAdjacentHTML('beforeend', '<div class="qq" id="gQ"></div><input id="gIn" type="number" inputmode="numeric" class="gin"><button class="gbtn" id="gOk">Провери</button>');
-    var nq = function () { var a = r(), b2 = 2 + Math.floor(Math.random() * 8); q = a * b2; $('gQ').textContent = (Math.random() < .5 ? a + ' × ' + b2 : b2 + ' × ' + a) + ' = ?'; $('gIn').value = ''; $('gIn').focus(); };
-    var chk = function () { if ($('gIn').value === '') return; if (+$('gIn').value === q) { ok++; tone(784, 1175, .12, 'triangle', .1); } else tone(220, 150, .2, 'sawtooth', .06); gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 10'); nq(); };
-    $('gOk').onclick = chk; $('gIn').onkeydown = function (e) { if (e.key === 'Enter') chk(); }; nq(); gHud('⏱ 60 s · точни: 0 / 10');
-    gTimer = setInterval(function () { t--; gHud('⏱ ' + t + ' s · точни: ' + ok + ' / 10'); if (t <= 0) gEnd('math', ok >= 10, ok + ' точни задачи за 60 секунди.', ok); }, 1000);
   },
   pop: function () {   // 24 меурчиња за 10 секунди
     var LIM = 8.5, left = 36, t0 = 0, cols = ['#ff4d6d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3aa7ff', '#9b5de5'], grid = document.createElement('div'); grid.className = 'gpop'; $('gArea').appendChild(grid); gHud('Пукни ги сите 36 за ' + LIM + ' s!');
@@ -2087,7 +2078,7 @@ $('qok').addEventListener('click', function () {
 $('qin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('qok').click(); });
 $('qlater').addEventListener('click', function () { var sb = quiz && quiz.kind === 'sbox'; $('quiz').classList.remove('on'); quiz = null; if (!sb) { SV.quizNext = Date.now() + 10 * 60000; save(); } });
 var quizT0 = Date.now();
-setInterval(function () { if (!myHash() || Date.now() - quizT0 < 25000 || (SV.quizNext || 0) > Date.now() || !quizFree()) return; quizStart(); }, 3000);
+// (pop-up задачата за 3 squishies е исклучена)
 function alarmSound() {   // „аларм“: три сирени нагоре-надолу + ѕвонче
   for (var k = 0; k < 3; k++) { tone(520, 1250, .28, 'sawtooth', .05, k * .5); tone(1250, 520, .22, 'sawtooth', .05, k * .5 + .28); tone(520, 1250, .28, 'square', .025, k * .5); }
   [1568, 2093, 2637].forEach(function (f, k) { tone(f, f, .5, 'triangle', .1, 1.5 + k * .07); });
