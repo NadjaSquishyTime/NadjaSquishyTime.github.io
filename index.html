@@ -223,6 +223,18 @@
   .splash { position: fixed; inset: 0; z-index: 95; display: none; place-items: center; background: linear-gradient(#fbe9f6, #efe4ff 60%, #f7e3f1); transition: opacity .45s; }
   .splash.on { display: grid; } .splash.out { opacity: 0; }
   .splash img { width: min(360px, 86vw); border-radius: 26px; box-shadow: 0 10px 34px rgba(150,80,200,.35); animation: introin .8s cubic-bezier(.2,1.4,.4,1) both; }
+  .gcard.lg { background: #1f2a3e; }
+  .lgbox { padding: 6px 0; } .lgbox.shake { animation: shake .4s; }
+  .lgq { font-size: 30px; font-weight: 900; letter-spacing: 2px; margin: 10px 0 2px; word-break: break-word; } .lgq b { color: #ffd23f; }
+  .lgch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+  .lgb { padding: 14px 6px; border: 0; border-radius: 16px; font-size: 26px; font-weight: 900; background: #2a2346; color: #fff; } .lgb img { width: 90%; display: block; margin: 0 auto; }
+  .lgb.ok { background: #1fae5a; } .lgb.bad { background: #c81e3a; }
+  .lgscale { font-size: 26px; font-weight: 800; line-height: 1.6; margin: 8px 0; }
+  .lgpath { display: grid; gap: 4px; margin: 8px auto; max-width: 330px; } .lgpath button { aspect-ratio: 1; border: 0; border-radius: 10px; background: #2a2346; font-size: 24px; } .lgpath button.poo { background: #4a3322; }
+  .lgmv { font-weight: 800; color: #9fe8ff; }
+  .lgdiff { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .lgd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 6px; border-radius: 12px; background: #2a2346; }
+  .lgd span, .lgd button { aspect-ratio: 1; display: grid; place-items: center; font-size: 20px; border: 0; border-radius: 8px; background: #1a1430; padding: 0; } .lgd button.ok { background: #1fae5a; } .lgd button.bad { background: #c81e3a; }
+  .lgsudo { display: grid; grid-template-columns: repeat(4, 64px); justify-content: center; gap: 4px; margin: 10px 0; } .lgsudo button { width: 64px; height: 64px; border: 0; border-radius: 12px; background: #2a2346; font-size: 32px; } .lgsudo button.fx { background: #3c3366; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -234,7 +246,7 @@
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn sp" id="spBtn"><div class="ico">🧺</div><div><b>Special Box ✨</b><small id="spN"></small></div></button>
-    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>6 игри · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
+    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>6 игри + 6 логички задачи · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
     <button class="boxbtn tr" id="trBtn"><div class="ico">⇄</div><div><b>Размена</b><small>Испрати или прими кнедла од пријател</small></div></button>
     <div class="prog"><span id="progT"></span><button id="oddsBtn">Шанси</button></div>
@@ -1885,7 +1897,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-11';
+var APP_VER = '2026-11-20-12';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1925,8 +1937,9 @@ function gEnd(id, won, txt, score, lower) {
 }
 function gHome() {
   gStop(); $('gTitle').textContent = '🎮 Игри';
-  $('gArea').innerHTML = '<p class="sub" style="margin:0 0 10px">Стигни ја целта → +2 Mystery Box и +2 Special Box (еднаш дневно по игра)</p>' + GAMES.map(function (g) {
-    var b = (SV.gameBest || {})[g.id]; return '<button class="gcard" data-g="' + g.id + '"><b>' + g.n + (gWonToday(g.id) ? ' ✅' : '') + '</b><small>' + g.d + (b !== undefined ? ' · рекорд: ' + b : '') + '</small></button>'; }).join('');
+  var card = function (g) { var b = (SV.gameBest || {})[g.id]; return '<button class="gcard' + (g.logic ? ' lg' : '') + '" data-g="' + g.id + '"><b>' + g.n + (gWonToday(g.id) ? ' ✅' : '') + '</b><small>' + g.d + (b !== undefined ? ' · рекорд: ' + b : '') + '</small></button>'; };
+  $('gArea').innerHTML = '<p class="sub" style="margin:0 0 10px">Стигни ја целта → +2 Mystery Box и +2 Special Box (еднаш дневно по игра)</p>' + GAMES.filter(function (g) { return !g.logic; }).map(card).join('')
+    + '<div class="sphead" style="margin:14px 2px 8px">🧩 Логика</div>' + GAMES.filter(function (g) { return g.logic; }).map(card).join('');
   Array.prototype.forEach.call(document.querySelectorAll('.gcard'), function (b) { b.onclick = function () { gPlay(b.getAttribute('data-g')); }; });
 }
 function gPlay(id) { gStop(); audio(); var g = GAMES.filter(function (x) { return x.id === id; })[0]; $('gTitle').textContent = g.n; $('gArea').innerHTML = ''; G[id](); }
@@ -2001,6 +2014,97 @@ var G = {
       gRaf = requestAnimationFrame(loop); })(last);
   }
 };
+// ---------- 🧩 Логички игри ----------
+// Секоја игра има неколку задачи (сè потешки). Победа = најмногу 1 грешка → иста награда како другите игри.
+GAMES.push(
+  { id: 'lseq', n: '🧩 Која следи?', d: '5 низи · најмногу 1 грешка', logic: 1 },
+  { id: 'lodd', n: '🧩 Кој е уљезот?', d: '5 задачи · најмногу 1 грешка', logic: 1 },
+  { id: 'lscale', n: '🧩 Вага', d: '5 задачи · најмногу 1 грешка', logic: 1 },
+  { id: 'lpath', n: '🧩 Најкраток пат', d: '3 патеки до кошничката со најмалку потези · најмногу 1 грешка', logic: 1 },
+  { id: 'ldiff', n: '🧩 Најди ги разликите', d: '3 слики · најмногу 1 погрешен клик', logic: 1 },
+  { id: 'lsudo', n: '🧩 Судоку 4×4', d: '2 судоку со squishies · најмногу 1 погрешна проверка', logic: 1 }
+);
+function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function lgRun(id, rounds, make) {   // заеднички тек: рунди, грешки, крај
+  var r = 0, miss = 0, box = document.createElement('div'); box.className = 'lgbox'; $('gArea').appendChild(box);
+  var hud = function () { gHud('Задача ' + Math.min(r + 1, rounds) + ' / ' + rounds + ' · грешки ' + miss + ' / 1'); };
+  var next = function () { if (r >= rounds) return gEnd(id, miss <= 1, 'Реши ' + rounds + ' задачи со ' + miss + (miss === 1 ? ' грешка.' : ' грешки.'), rounds - miss); hud(); box.innerHTML = ''; make(box, r, done); };
+  var done = function (ok, keep) {   // keep: иста задача продолжува (на пр. погрешен клик)
+    if (!ok) { miss++; tone(220, 150, .25, 'sawtooth', .07); var b = box; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); if (miss > 1) return gEnd(id, false, 'Премногу грешки. Обиди се пак!', r); hud(); if (keep) return; }
+    else { tone(784, 1175, .15, 'triangle', .1); fizz(0, .08); }
+    r++; setTimeout(next, ok ? 450 : 900); };
+  next();
+}
+function lgChoices(box, items, correct, done, html) {   // копчиња со избор
+  var w = document.createElement('div'); w.className = 'lgch'; box.appendChild(w);
+  shuf(items).forEach(function (it) { var b = document.createElement('button'); b.className = 'lgb'; b.innerHTML = html ? html(it) : it; w.appendChild(b);
+    b.onclick = function () { if (w.dataset.done) return; w.dataset.done = 1; var ok = it === correct; b.classList.add(ok ? 'ok' : 'bad'); done(ok); }; });
+}
+var LGE = ['🍓', '🍋', '🫐', '🍑', '🍩', '🧁', '🍬', '⭐', '🌙', '🍀'];
+G.lseq = function () { lgRun('lseq', 5, function (box, lvl, done) {
+  var q, ans, opts;
+  if (lvl < 2) { var e = shuf(LGE).slice(0, 3), pat = lvl ? [0, 1, 2] : [0, 1], seq = []; for (var i = 0; i < 7; i++) seq.push(e[pat[i % pat.length]]); ans = e[pat[7 % pat.length]]; q = seq.join(' '); opts = e.concat(shuf(LGE.filter(function (x) { return e.indexOf(x) < 0; })).slice(0, 1)); }
+  else if (lvl < 4) { var st = 1 + Math.floor(Math.random() * 6), d = 2 + Math.floor(Math.random() * 5), ar = [st, st + d, st + 2 * d, st + 3 * d, st + 4 * d]; if (lvl === 3) { var m = 2 + Math.floor(Math.random() * 2); ar = [st, st * m, st * m * m, st * m * m * m]; ans = st * Math.pow(m, 4); } else ans = st + 5 * d; q = ar.join(', ') + ', ?'; opts = [ans, ans + 1, ans - d || ans + 2, ans + d]; }
+  else { var a = 1 + Math.floor(Math.random() * 3), ar2 = [a], inc = 1; for (var k = 1; k < 5; k++) { ar2.push(ar2[k - 1] + inc); inc++; } ans = ar2[4] + inc; q = ar2.join(', ') + ', ?'; opts = [ans, ans + 1, ans - 1, ans + 2]; }
+  box.insertAdjacentHTML('beforeend', '<div class="lgq">' + q + ' <b>?</b></div><p class="sub">Што доаѓа следно?</p>');
+  opts = opts.filter(function (x, i) { return opts.indexOf(x) === i; }); lgChoices(box, opts, ans, done);
+}); };
+G.lodd = function () { lgRun('lodd', 5, function (box, lvl, done) {
+  var groups = [['plush', function (v) { return v.plush; }], ['bar', function (v) { return v.bar; }], ['globe', function (v) { return v.globe; }], ['bear', function (v) { return v.shape === 'bear'; }], ['glitter', function (v) { return v.chunk && !v.plush && !v.bar && v.shape !== 'bear'; }]];
+  var pool = gPool(), A = [], Bv = null, tries = 0;
+  while ((A.length < 3 || !Bv) && tries++ < 50) { var g1 = any(groups), g2 = any(groups.filter(function (g) { return g !== g1; }));
+    A = shuf(pool.filter(function (v) { return g1[1](v) && !g2[1](v); })).slice(0, 3); Bv = any(pool.filter(function (v) { return g2[1](v) && !g1[1](v); })) || null; }
+  box.insertAdjacentHTML('beforeend', '<p class="sub">Едно не припаѓа на другите. Кое?</p>');
+  lgChoices(box, A.concat([Bv]), Bv, done, function (v) { return '<img src="' + thumb(v) + '">'; });
+}); };
+G.lscale = function () { lgRun('lscale', 5, function (box, lvl, done) {
+  var e = shuf(['🍩', '🎂', '🍬', '🧁', '🍓']), a = 1 + Math.floor(Math.random() * (3 + lvl)), b = 2 + Math.floor(Math.random() * (3 + lvl)), c = 1 + Math.floor(Math.random() * 4), L, ans;
+  if (lvl < 2) { L = [e[0] + ' + ' + e[0] + ' = ' + 2 * a, e[0] + ' + ' + e[1] + ' = ' + (a + b), e[1] + ' = ?']; ans = b; }
+  else if (lvl < 4) { L = [e[0] + ' + ' + e[0] + ' + ' + e[0] + ' = ' + 3 * a, e[1] + ' + ' + e[0] + ' = ' + (a + b), e[1] + ' + ' + e[1] + ' = ?']; ans = 2 * b; }
+  else { L = [e[0] + ' + ' + e[0] + ' = ' + 2 * a, e[0] + ' + ' + e[1] + ' = ' + (a + b), e[1] + ' + ' + e[2] + ' = ' + (b + c), e[0] + ' + ' + e[1] + ' + ' + e[2] + ' = ?']; ans = a + b + c; }
+  box.insertAdjacentHTML('beforeend', '<div class="lgscale">' + L.map(function (l) { return '<div>' + l + '</div>'; }).join('') + '</div>');
+  var opts = [ans, ans + 1, ans - 1 || ans + 3, ans + 2]; lgChoices(box, opts.filter(function (x, i) { return opts.indexOf(x) === i; }), ans, done);
+}); };
+G.lpath = function () { lgRun('lpath', 3, function (box, lvl, done) {
+  var N5 = 5 + (lvl > 1 ? 1 : 0), grid, start = [0, 0], goal = [N5 - 1, N5 - 1];
+  var dist = function (gr) { var seen = {}, q2 = [[start[0], start[1], 0]]; seen[start] = 1; while (q2.length) { var c = q2.shift(); if (c[0] === goal[0] && c[1] === goal[1]) return c[2]; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = [c[0] + d[0], c[1] + d[1]]; if (n[0] >= 0 && n[1] >= 0 && n[0] < N5 && n[1] < N5 && !gr[n[0]][n[1]] && !seen[n]) { seen[n] = 1; q2.push([n[0], n[1], c[2] + 1]); } }); } return 0; };
+  var ok = function (gr) { return dist(gr) > N5 * 2 - 2; }, best, moves = 0;   // патот мора да заобиколува
+  do { grid = []; for (var y = 0; y < N5; y++) { grid.push([]); for (var x = 0; x < N5; x++) grid[y].push(Math.random() < .28 + lvl * .04 && !(y === 0 && x === 0) && !(y === N5 - 1 && x === N5 - 1)); } } while (!ok(grid)); best = dist(grid);
+  var pos = start.slice(), el = document.createElement('div'); el.className = 'lgpath'; el.style.gridTemplateColumns = 'repeat(' + N5 + ',1fr)'; box.appendChild(el);
+  box.insertAdjacentHTML('afterbegin', '<p class="sub">Однеси го 🥟 до 🧺 со <b>најмалку потези</b> (' + best + '). Заобиколи ги 💩!</p><div class="lgmv" id="lgMv">Потези: 0 / ' + best + '</div>');
+  var draw = function () { el.innerHTML = ''; for (var y = 0; y < N5; y++) for (var x = 0; x < N5; x++) (function (y, x) { var b = document.createElement('button');
+    b.textContent = y === pos[0] && x === pos[1] ? '🥟' : y === goal[0] && x === goal[1] ? '🧺' : grid[y][x] ? '💩' : '';
+    if (grid[y][x]) b.className = 'poo';
+    b.onclick = function () { if (Math.abs(y - pos[0]) + Math.abs(x - pos[1]) !== 1) return;
+      if (grid[y][x] || el.dataset.end) return;
+      pos = [y, x]; moves++; $('lgMv').textContent = 'Потези: ' + moves + ' / ' + best; click(1200, .2); draw();
+      if (y === goal[0] && x === goal[1]) { el.dataset.end = 1; done(moves <= best); } else if (moves >= best) { el.dataset.end = 1; done(false); } }; el.appendChild(b); })(y, x); };
+  draw();
+}); };
+G.ldiff = function () { lgRun('ldiff', 3, function (box, lvl, done) {
+  var S = ['🍓', '🍋', '🫐', '🍩', '🧁', '🍬', '⭐', '🍀', '🌙', '🍑'], n = 16, L = [], R, ch = shuf(Array.apply(null, { length: n }).map(function (_, i) { return i; })).slice(0, 3), found = 0;
+  for (var i = 0; i < n; i++) L.push(any(S)); R = L.slice(); ch.forEach(function (i) { var o; do o = any(S); while (o === L[i]); R[i] = o; });
+  box.insertAdjacentHTML('beforeend', '<p class="sub">Најди ги 3-те разлики на десната слика</p><div class="lgdiff"><div class="lgd" id="lgL"></div><div class="lgd" id="lgR"></div></div>');
+  L.forEach(function (e) { $('lgL').insertAdjacentHTML('beforeend', '<span>' + e + '</span>'); });
+  R.forEach(function (e, i) { var b = document.createElement('button'); b.textContent = e; $('lgR').appendChild(b);
+    b.onclick = function () { if (b.dataset.f) return; if (ch.indexOf(i) >= 0) { b.dataset.f = 1; b.classList.add('ok'); found++; tone(988, 1319, .12, 'triangle', .1); if (found === 3) done(true); } else { b.classList.add('bad'); setTimeout(function () { b.classList.remove('bad'); }, 400); done(false, true); } }; });
+}); };
+G.lsudo = function () { lgRun('lsudo', 2, function (box, lvl, done) {
+  var sym = shuf(['🍓', '🍋', '🫐', '🍩']), base = [[0, 1, 2, 3], [2, 3, 0, 1], [1, 0, 3, 2], [3, 2, 1, 0]];
+  var rp = Math.random() < .5 ? [0, 1, 2, 3] : [1, 0, 3, 2], cp = Math.random() < .5 ? [0, 1, 2, 3] : [0, 1, 3, 2], sol = rp.map(function (r) { return cp.map(function (c) { return base[r][c]; }); });
+  var hide = shuf(Array.apply(null, { length: 16 }).map(function (_, i) { return i; })).slice(0, 7 + lvl * 2), cur2 = sol.map(function (r) { return r.slice(); });
+  hide.forEach(function (i) { cur2[Math.floor(i / 4)][i % 4] = -1; });
+  box.insertAdjacentHTML('beforeend', '<p class="sub">Секој ред, колона и квадрат 2×2 има по едно од секое. Допри празно поле за менување.</p>');
+  var el = document.createElement('div'); el.className = 'lgsudo'; box.appendChild(el);
+  for (var y = 0; y < 4; y++) for (var x = 0; x < 4; x++) (function (y, x) { var b = document.createElement('button'), fixed = cur2[y][x] >= 0; b.textContent = fixed ? sym[cur2[y][x]] : ''; if (fixed) b.className = 'fx';
+    if ((x === 1) ) b.style.marginRight = '6px'; if (y === 1) b.style.marginBottom = '6px';
+    b.onclick = function () { if (fixed) return; cur2[y][x] = (cur2[y][x] + 1) % 4; b.textContent = sym[cur2[y][x]]; click(1300, .15); }; el.appendChild(b); })(y, x);
+  var chk = document.createElement('button'); chk.className = 'gbtn'; chk.textContent = 'Провери'; box.appendChild(chk);
+  chk.onclick = function () { var uniq = function (a) { return a.indexOf(-1) < 0 && a.filter(function (v, i) { return a.indexOf(v) === i; }).length === 4; }, good = true;
+    for (var k = 0; k < 4; k++) { var bx = Math.floor(k / 2) * 2, by2 = (k % 2) * 2;
+      if (!uniq(cur2[k]) || !uniq(cur2.map(function (r) { return r[k]; })) || !uniq([cur2[bx][by2], cur2[bx][by2 + 1], cur2[bx + 1][by2], cur2[bx + 1][by2 + 1]])) good = false; } if (good) { chk.disabled = true; done(true); } else done(false, true); };
+}); };
+
 $('gamesBtn').addEventListener('click', function () { audio(); $('games').classList.add('open'); $('gMus').textContent = music.enabled() ? '🔊' : '🔇'; gHome(); });
 $('gMus').addEventListener('click', function (e) { e.stopPropagation(); music.toggle(); $('gMus').textContent = music.enabled() ? '🔊' : '🔇'; });
 $('gBack').addEventListener('click', function () { gStop(); $('games').classList.remove('open'); home(); });
