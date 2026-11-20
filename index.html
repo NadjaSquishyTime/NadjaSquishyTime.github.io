@@ -1760,7 +1760,7 @@ function cleanOnly() { var ch = false; V.forEach(function (v) { if (v.only && SV
   if (SV.force) SV.force = SV.force.filter(function (f) { var v = byId(f.id); return v && canHave(v); }); if (ch) { save(); if (!document.querySelector('.screen.open')) home(); } }
 setTimeout(cleanOnly, 500); setInterval(cleanOnly, 5000);
 function roll() {
-  if (Math.random() < (SV.owned.school ? .005 : .02)) return byId('school');   // Must have: School squishy — средна шанса за сите (2%, дупликат 0,5%)
+  if (Math.random() < (SV.owned.school ? .0125 : .05)) return byId('school');   // Must have: School squishy — 5% за сите (дупликат 1,25%)
   if (SV.force && SV.force.length) for (var fi = 0; fi < SV.force.length; fi++) if (SV.force[fi].at <= (SV.opens || 0)) { var fv = byId(SV.force[fi].id); SV.force.splice(fi, 1); if (fv && canHave(fv)) return fv; }   // подарени squishies
   var rr = rareRoll(); if (rr) return rr;
   var x = Math.random() * 100, acc = 0, rar = 'common', w = odds();
@@ -1859,7 +1859,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-7';
+var APP_VER = '2026-11-20-8';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2014,9 +2014,7 @@ function statId() { var me = myHash(), id = me ? me.slice(0, 6).toUpperCase() : 
 var GREET = {
   'ba3a575a3084439b': ['Здраво Надја, tennis queen! 🎾👑', 'Zdravo Nahdya, tennis queen!'],
   '069496a50bd67643': ['Здраво Деа смеа! 😂', 'Zdravo Deh-ah, smeh-ah!'],
-  '1d8fc03c473b151f': ['Вики! Вики! Вики! 🎉', 'Veekee! Veekee! Veekee!'],
-  'c6267e36b14de7e5': ['Hello there! 👋', 'Hello there!'],
-  '45431caa3f66821a': ['Hello there! 👋', 'Hello there!']
+  '1d8fc03c473b151f': ['Вики! Вики! Вики! 🎉', 'Veekee! Veekee! Veekee!']
 };
 var greeted = false;
 function showGreeting() {   // еднаш по отворање, откако е внесен кодот
