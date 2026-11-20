@@ -1859,7 +1859,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-6';
+var APP_VER = '2026-11-20-7';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2003,6 +2003,7 @@ var MESSAGES = [
   { id: 'test-thundermans-1', to: 'c6267e36b14de7e5', text: 'Тест: следната Mystery Box крие Thundermans ⚡ (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['thunderhero'] },   // C6267E (тест)
   { id: 'poop-nadja', to: 'ba3a575a3084439b', text: 'Изненадување во следната кутија… 💩🪰 (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['poopfly'] },
   { id: 'poop-dea', to: '069496a50bd67643', text: 'Изненадување во следната кутија… 💩🪰 (+1 кутија)', times: 1, sec: 4, boxes: 1, force: ['poopfly'] },
+  { id: 'must-school', to: '*', text: 'There is something new! A Must Have Squishy 📍', times: 1, sec: 5, blink: 1, vib: 1, party: 1, partySay: 'There is something new! A must have squishy!' },   // до сите
   { id: 'nadja-treat-5', to: '*', text: 'Надја части 5 кутии! 🎁🎉', times: 1, sec: 5, boxes: 5, party: 1 }   // до СИТЕ корисници
 ];
 // Имиња на корисниците (по отпечаток на кодот за влез). Се покажуваат во апликацијата и во статистиката.
