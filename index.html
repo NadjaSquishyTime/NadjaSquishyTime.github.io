@@ -219,6 +219,9 @@
   .gin { width: 100%; box-sizing: border-box; font-size: 26px; text-align: center; padding: 10px; border-radius: 14px; border: 2px solid #6a4bb0; background: #120d22; color: #fff; margin-bottom: 6px; }
   .gpop { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; padding: 12px; border-radius: 22px; background: #2a2346; }
   .gpop button { aspect-ratio: 1; border: 0; border-radius: 50%; box-shadow: inset -5px -6px 0 rgba(0,0,0,.22), inset 5px 5px 0 rgba(255,255,255,.45); } .gpop button.on { box-shadow: inset 5px 6px 8px rgba(0,0,0,.4); filter: brightness(.85); }
+  .splash { position: fixed; inset: 0; z-index: 95; display: none; place-items: center; background: linear-gradient(#fbe9f6, #efe4ff 60%, #f7e3f1); transition: opacity .45s; }
+  .splash.on { display: grid; } .splash.out { opacity: 0; }
+  .splash img { width: min(360px, 86vw); border-radius: 26px; box-shadow: 0 10px 34px rgba(150,80,200,.35); animation: introin .8s cubic-bezier(.2,1.4,.4,1) both; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -261,6 +264,7 @@
     <div class="qbtns"><button id="qok">Провери</button><button id="qlater" class="alt">Подоцна</button></div>
     <p class="qmsg" id="qmsg"></p><div class="qwin" id="qwin"></div>
   </div></div>
+  <div class="splash" id="splash"><img src="slike/intro.webp" alt="Nadja Squishy Time"></div>
   <div class="umsg" id="umsg"><div id="umsgT"></div></div>
   <div class="screen" id="pause" style="--rc:#7a3cff; z-index:60; justify-content:center; text-align:center">
     <h2 style="font-size:28px">Пауза ⏸</h2><p class="sub">Апликацијата е на кратка пауза.<br>Ќе работи повторно за</p>
@@ -1837,9 +1841,11 @@ $('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryC
 document.addEventListener('touchmove', function (e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
 var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
-if (unlocked()) $('lock').classList.remove('open');
+if (unlocked()) { $('lock').classList.remove('open');
+  var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
+function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-3';
+var APP_VER = '2026-11-20-4';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1999,11 +2005,11 @@ var GREET = {
 };
 var greeted = false;
 function showGreeting() {   // еднаш по отворање, откако е внесен кодот
-  var g = GREET[myHash()]; if (greeted || !g || msgBusy || $('lock').classList.contains('open') || $('pause').classList.contains('open')) return;
+  var g = GREET[myHash()]; if (greeted || !g || msgBusy || splashOn() || $('lock').classList.contains('open') || $('pause').classList.contains('open')) return;
   greeted = true; var el = $('umsg'); $('umsgT').textContent = g[0]; el.classList.add('on', 'greet');
   setTimeout(function () { el.classList.remove('on'); setTimeout(function () { el.classList.remove('greet'); }, 400); }, 3200);
 }
-setTimeout(showGreeting, 700); setInterval(showGreeting, 1500);
+setTimeout(showGreeting, 2700); setInterval(showGreeting, 1500);
 function myHash() { var h = null; try { h = localStorage.getItem('dvAccess'); } catch (e) {} return h || sessHash; }
 var msgBusy = false;
 // ---------- Игра: множење двоцифрен × едноцифрен → 3 squishies ----------
@@ -2059,6 +2065,7 @@ function party(sayText, delay) {   // конфети и ѕвезди по цел
   setTimeout(function () { say(sayText || 'Nahdya treats everyone! Five boxes!'); }, pd * 1000);
 }
 function checkMessages() {
+  if (splashOn()) return;
   if (msgBusy || $('umsg').classList.contains('greet') || $('pause').classList.contains('open') || $('lock').classList.contains('open')) return;
   var me = myHash(); SV.msgs = SV.msgs || {};
   for (var i = 0; i < MESSAGES.length; i++) { var m = MESSAGES[i]; if (m.hold || !me || (m.to !== me && m.to !== '*') || SV.msgs[m.id]) continue;   // to: '*' = до сите   // hold: задржана, уште не се праќа
