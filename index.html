@@ -1920,7 +1920,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-14';
+var APP_VER = '2026-11-20-15';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2041,7 +2041,7 @@ var G = {
 // Секоја игра има неколку задачи (сè потешки). Победа = најмногу 1 грешка → иста награда како другите игри.
 GAMES.push(
   { id: 'lseq', n: '🧩 Која следи?', d: '5 низи · најмногу 1 грешка', logic: 1 },
-  { id: 'lodd', n: '🧩 Кој е уљезот?', d: '5 задачи · најмногу 1 грешка', logic: 1 },
+  { id: 'lodd', n: '🧩 Кој е натрапникот?', d: '5 задачи · најмногу 1 грешка', logic: 1 },
   { id: 'lscale', n: '🧩 Вага', d: '5 задачи · најмногу 1 грешка', logic: 1 },
   { id: 'lpath', n: '🧩 Најкраток пат', d: '3 патеки до кошничката со најмалку потези · најмногу 1 грешка', logic: 1 },
   { id: 'ldiff', n: '🧩 Најди ги разликите', d: '3 слики · најмногу 1 погрешен клик', logic: 1 },
@@ -2073,7 +2073,8 @@ G.lseq = function () { lgRun('lseq', 5, function (box, lvl, done) {
   opts = opts.filter(function (x, i) { return opts.indexOf(x) === i; }); lgChoices(box, opts, ans, done);
 }); };
 G.lodd = function () { lgRun('lodd', 5, function (box, lvl, done) {
-  var groups = [['plush', function (v) { return v.plush; }], ['bar', function (v) { return v.bar; }], ['globe', function (v) { return v.globe; }], ['bear', function (v) { return v.shape === 'bear'; }], ['glitter', function (v) { return v.chunk && !v.plush && !v.bar && v.shape !== 'bear'; }]];
+  var plain = function (v) { return !v.hat && !v.feet && !v.face && !v.bow && !v.motif && !v.orn && !v.photo; };   // само „чисти“ squishies, за натрапникот да е јасен
+  var groups = [['plush', function (v) { return v.plush && plain(v); }], ['bar', function (v) { return v.bar; }], ['globe', function (v) { return v.globe; }], ['bear', function (v) { return v.shape === 'bear'; }], ['glitter', function (v) { return v.chunk && !v.plush && !v.bar && v.shape !== 'bear' && plain(v); }], ['popit', function (v) { return v.popit; }]];
   var pool = gPool(), A = [], Bv = null, tries = 0;
   while ((A.length < 3 || !Bv) && tries++ < 50) { var g1 = any(groups), g2 = any(groups.filter(function (g) { return g !== g1; }));
     A = shuf(pool.filter(function (v) { return g1[1](v) && !g2[1](v); })).slice(0, 3); Bv = any(pool.filter(function (v) { return g2[1](v) && !g1[1](v); })) || null; }
