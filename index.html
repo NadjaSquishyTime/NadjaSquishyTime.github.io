@@ -1397,15 +1397,28 @@ function buzzStop() { if (!buzzLoop) return; var b = buzzLoop; buzzLoop = null; 
 function schoolBell(delay) {   // училишно ѕвонче: брзи метални удари
   for (var k = 0; k < 14; k++) { tone(1568, 1560, .14, 'triangle', .1, (delay || 0) + k * .055); tone(2349, 2340, .1, 'sine', .05, (delay || 0) + k * .055); click(5200, .12, (delay || 0) + k * .055); }
 }
-var BOOKS = ['📚', '📖', '📕', '📗', '📘', '📙', '✏️'];
+var BOOKS = ['#e8324a', '#3a7be0', '#1fae5a', '#ff8a1f', '#9b5de5', '#ffd23f'];   // бои на кориците
 function spawnBook(n) { cur._books = cur._books || []; for (var i = 0; i < n; i++) { var a = Math.random() * 6.283, sp = 140 + Math.random() * 260;
-  cur._books.push({ x: CX + Math.cos(a) * 60, y: CY - 20 + Math.sin(a) * 40, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, r: Math.random() * 6.28, vr: (Math.random() - .5) * 9, s: 20 + Math.random() * 16, e: BOOKS[Math.floor(Math.random() * BOOKS.length)], life: 1.6 + Math.random() * .8 }); } }
+  cur._books.push({ x: CX + Math.cos(a) * 60, y: CY - 20 + Math.sin(a) * 40, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, r: Math.random() * 6.28, vr: (Math.random() - .5) * 9, s: 20 + Math.random() * 16, c: BOOKS[Math.floor(Math.random() * BOOKS.length)], k: Math.random() < .2 ? 'pen' : Math.random() < .35 ? 'open' : 'book', life: 1.6 + Math.random() * .8 }); } }
+function drawBook(g, b) {   // книга / отворена книга / молив, нацртани со форми (работи на сите телефони)
+  var s = b.s, w = s, h = s * .72;
+  if (b.k === 'pen') { g.fillStyle = '#ffd23f'; g.fillRect(-s * .7, -s * .12, s * 1.2, s * .24); g.fillStyle = '#ff7ab0'; g.fillRect(-s * .8, -s * .12, s * .14, s * .24);
+    g.fillStyle = '#f2d2a2'; g.beginPath(); g.moveTo(s * .5, -s * .12); g.lineTo(s * .8, 0); g.lineTo(s * .5, s * .12); g.closePath(); g.fill(); g.fillStyle = '#333'; g.beginPath(); g.moveTo(s * .7, -s * .04); g.lineTo(s * .8, 0); g.lineTo(s * .7, s * .04); g.closePath(); g.fill(); return; }
+  if (b.k === 'open') { g.fillStyle = b.c; g.fillRect(-w * .55, -h * .55, w * 1.1, h * 1.1);
+    g.fillStyle = '#fffaf0'; g.beginPath(); g.moveTo(0, -h * .45); g.quadraticCurveTo(-w * .25, -h * .55, -w * .5, -h * .45); g.lineTo(-w * .5, h * .45); g.quadraticCurveTo(-w * .25, h * .35, 0, h * .45); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(0, -h * .45); g.quadraticCurveTo(w * .25, -h * .55, w * .5, -h * .45); g.lineTo(w * .5, h * .45); g.quadraticCurveTo(w * .25, h * .35, 0, h * .45); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1; for (var k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(-w * .42, k * h * .15); g.lineTo(-w * .08, k * h * .15); g.moveTo(w * .08, k * h * .15); g.lineTo(w * .42, k * h * .15); g.stroke(); } return; }
+  g.fillStyle = '#fffaf0'; g.fillRect(-w * .5 + 3, -h * .5 + 2, w, h);   // страници
+  g.fillStyle = b.c; g.beginPath(); g.roundRect(-w * .5, -h * .5, w, h, 3); g.fill();   // корица
+  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(-w * .5, -h * .5, w * .16, h);   // рбет
+  g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(-w * .18, -h * .2, w * .5, h * .12); g.fillRect(-w * .18, h * .02, w * .36, h * .08);   // наслов
+}
 function schoolBooks(g, dt) {
   var q = hand.q * hand.h; if (hand.down && Math.random() < dt * (2 + q * 18)) spawnBook(1 + (q > .6 ? 1 : 0));
   var B = cur._books || []; g.textAlign = 'center'; g.textBaseline = 'middle';
   B.forEach(function (b) { b.vy += 420 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt; b.life -= dt;
     if (b.x < 14 || b.x > W - 14) { b.vx *= -.7; b.x = clamp(b.x, 14, W - 14); }
-    g.save(); g.globalAlpha = clamp(b.life, 0, 1); g.translate(b.x, b.y); g.rotate(b.r); g.font = b.s + 'px system-ui'; g.fillText(b.e, 0, 0); g.restore(); });
+    g.save(); g.globalAlpha = clamp(b.life, 0, 1); g.translate(b.x, b.y); g.rotate(b.r); drawBook(g, b); g.restore(); });
   cur._books = B.filter(function (b) { return b.life > 0 && b.y < H + 40; }); g.globalAlpha = 1;
 }
 function tennisHit() {   // удар со рекет по тениско топче: „поп!“ + одбивање од теренот
@@ -1872,7 +1885,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-9';
+var APP_VER = '2026-11-20-10';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
