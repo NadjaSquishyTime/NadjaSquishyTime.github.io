@@ -488,7 +488,30 @@ function uniqueVariant(u) {
 })();
 var SV = { boxes: 3, sq: 0, owned: {}, uniq: [] };
 try { var j = JSON.parse(localStorage.getItem('dumplingVault1')); if (j) SV = j; } catch (e) {}
-function save() { try { localStorage.setItem('dumplingVault1', JSON.stringify(SV)); } catch (e) {} }
+// Зачувување без губење: ако апликацијата е отворена на две места (иконка + таб), пред запишување
+// се спојуваат промените (трипатно спојување со последната заедничка состојба), наместо едната да ја брише другата.
+var SVbase = JSON.parse(JSON.stringify(SV));
+function svMerge(base, mine, theirs) {
+  var out = JSON.parse(JSON.stringify(theirs)), num = function (a, b, c) { return Math.max(0, (c || 0) + ((b || 0) - (a || 0))); };
+  out.owned = out.owned || {}; var keys = {}; [base.owned, mine.owned, theirs.owned].forEach(function (o) { for (var k in (o || {})) keys[k] = 1; });
+  for (var k in keys) { var v = num((base.owned || {})[k], (mine.owned || {})[k], (theirs.owned || {})[k]); if (v > 0) out.owned[k] = v; else delete out.owned[k]; }
+  ['boxes', 'sboxes', 'sq', 'opens', 'quizWins'].forEach(function (f) { out[f] = num(base[f], mine[f], theirs[f]); });
+  var seeds = {}; out.uniq = []; (theirs.uniq || []).concat(mine.uniq || []).forEach(function (u) { if (!seeds[u.seed] && out.owned['u' + u.seed]) { seeds[u.seed] = 1; out.uniq.push(u); } });
+  ['msgs', 'won', 'gameWins', 'bonus'].forEach(function (f) { out[f] = Object.assign({}, theirs[f] || {}, mine[f] || {}); });
+  out.redeemed = (theirs.redeemed || []).concat((mine.redeemed || []).filter(function (x) { return (theirs.redeemed || []).indexOf(x) < 0; }));
+  out.gameBest = Object.assign({}, theirs.gameBest || {}, mine.gameBest || {});
+  var ba = base.act || { total: 0, days: {} }, ma = mine.act || { total: 0, days: {} }, ta = theirs.act || { total: 0, days: {} }; out.act = { total: num(ba.total, ma.total, ta.total), days: Object.assign({}, ta.days) };
+  for (var d in ma.days) out.act.days[d] = num(ba.days[d], ma.days[d], ta.days[d]);
+  ['adv', 'sent', 'force', 'quizNext'].forEach(function (f) { if (mine[f] !== undefined) out[f] = mine[f]; });
+  out.rev = theirs.rev || 0; return out;
+}
+function svSync() {   // ако некоја друга копија зачувала во меѓувреме, спои ги нејзините промени
+  try { var st = JSON.parse(localStorage.getItem('dumplingVault1')); if (st && (st.rev || 0) > (SV.rev || 0)) { SV = svMerge(SVbase, SV, st); SVbase = JSON.parse(JSON.stringify(st)); return true; } } catch (e) {}
+  return false;
+}
+function save() { try { svSync(); SV.rev = (SV.rev || 0) + 1; var t = JSON.stringify(SV); localStorage.setItem('dumplingVault1', t); SVbase = JSON.parse(t); } catch (e) {} }
+window.addEventListener('storage', function (e) { if (e.key === 'dumplingVault1' && svSync() && typeof home === 'function' && !document.querySelector('.screen.open')) home(); });
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}   // барај телефонот да не ги брише податоците
 var PER_BOX = 15;
 function allVariants() { return V.concat(SV.uniq.map(uniqueVariant)); }
 function byId(id) { var a = allVariants(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; }
@@ -1225,9 +1248,9 @@ function photoImg(src) {   // слика за squishy (се вчитува ед�
 function thumb(v) {
   if (v.card) return v.card;   // Special Edition: фотографијата
   if (thumbs[v.id]) return thumbs[v.id];
-  if (v.photo && !(photoImg(v.photo).complete && photoImg(v.photo).naturalWidth)) { var c0 = document.createElement('canvas'); c0.width = 240; c0.height = 216; var g0 = c0.getContext('2d'); g0.scale(.6, .6); g0.translate(0, -42); draw(g0, SHAPES[v.shape], v, 1); return c0.toDataURL(); }
+  if (v.photo && !(photoImg(v.photo).complete && photoImg(v.photo).naturalWidth)) { try { var c0 = document.createElement('canvas'); c0.width = 240; c0.height = 216; var g0 = c0.getContext('2d'); g0.scale(.6, .6); g0.translate(0, -42); draw(g0, SHAPES[v.shape], v, 1); return c0.toDataURL(); } catch (e) { return v.photo; } }
   var c = document.createElement('canvas'); c.width = 240; c.height = 216; var g = c.getContext('2d');
-  g.scale(.6, .6); g.translate(0, -42); draw(g, SHAPES[v.shape || 'dome'], v, 1); return thumbs[v.id] = c.toDataURL();
+  try { g.scale(.6, .6); g.translate(0, -42); draw(g, SHAPES[v.shape || 'dome'], v, 1); return thumbs[v.id] = c.toDataURL(); } catch (e) { return v.photo || v.card || ''; }   // ако цртањето не успее, сликата ќе се покаже сепак
 }
 
 // ---------- Звук ----------
@@ -1243,7 +1266,7 @@ function audio() {
 // iOS: звукот да се слуша и кога телефонот е на тивко (Safari 17+)
 try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
 document.addEventListener('pointerdown', function () { if (ac) audio(); }, true);   // секој допир го „буди“ звукот ако заспал
-document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ac) audio(); if (document.visibilityState === 'hidden') buzzStop(); });
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { if (ac) audio(); if (svSync() && typeof home === 'function' && !document.querySelector('.screen.open')) home(); } if (document.visibilityState === 'hidden') buzzStop(); });
 // ---------- Позадинска музика (оригинална, во K-pop / „soda pop“ стил) ----------
 // Свири само на почетниот екран; копчето 🔊/🔇 ја пали и гаси (се памети).
 var music = (function () {
@@ -1651,8 +1674,8 @@ function home() {
   all.forEach(function (v) {
     if (v.rar !== 'sped' && !restShown) { restShown = true; head('Колекција'); }
     var n = SV.owned[v.id] || 0, r = RAR[v.rar]; if (n) own++;
-    var b = document.createElement('button'); b.className = 'card' + (n ? '' : ' locked'); b.style.setProperty('--rc', r.c);
-    b.innerHTML = '<img src="' + thumb(v) + '" alt="">' + (n > 1 ? '<span class="cnt">×' + n + '</span>' : '') + '<div class="nm">' + (n ? v.name : '???') + '</div><span class="tag' + (v.rar === 'ooak' ? ' ooak' : v.rar === 'sped' ? ' sped' : v.rar === 'must' ? ' must' : '') + '">' + r.n + '</span>';
+    var b = document.createElement('button'); b.className = 'card' + (n ? '' : ' locked'); b.style.setProperty('--rc', r.c); var tsrc = ''; try { tsrc = thumb(v); } catch (e) {}
+    b.innerHTML = '<img src="' + tsrc + '" alt="">' + (n > 1 ? '<span class="cnt">×' + n + '</span>' : '') + '<div class="nm">' + (n ? v.name : '???') + '</div><span class="tag' + (v.rar === 'ooak' ? ' ooak' : v.rar === 'sped' ? ' sped' : v.rar === 'must' ? ' must' : '') + '">' + r.n + '</span>';
     if (n) b.addEventListener('click', function () { play(v); });
     grid.appendChild(b);
   });
@@ -1897,7 +1920,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-12';
+var APP_VER = '2026-11-20-14';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
