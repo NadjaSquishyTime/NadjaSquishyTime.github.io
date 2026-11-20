@@ -251,7 +251,7 @@
     </div>
   </div>
   <div class="screen" id="games" style="--rc:#3aa7ff">
-    <div class="top"><button class="back" id="gBack">← Назад</button><span class="tag" style="--rc:#3aa7ff">Игри</span></div>
+    <div class="top"><button class="back" id="gBack">← Назад</button><span><button id="gMus" class="musbtn" aria-label="Музика">🔊</button><span class="tag" style="--rc:#3aa7ff">Игри</span></span></div>
     <h2 id="gTitle">🎮 Игри</h2><div id="gArea" class="garea"></div>
   </div>
   <div class="quiz" id="quiz"><div class="qbox" id="qbox">
@@ -1258,6 +1258,34 @@ var music = (function () {
   return { want: function () { wanted = true; }, toggle: function () { var en = !enabled(); try { localStorage.setItem('dvMusic', en ? 'on' : 'off'); } catch (e) {}
     wanted = true; audio(); $('musBtn').textContent = en ? '🔊' : '🔇'; }, enabled: enabled };
 })();
+// ---------- Музика за игрите (оригинална, брза chiptune јамка) ----------
+// Свири само додека е отворен екранот „Игри“; го почитува копчето 🔊/🔇.
+var gameMusic = (function () {
+  var BPM = 148, S = 60 / BPM / 4, on = false, next = 0, step = 0, timer = null, out = null;
+  var CH = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];   // C – Am – F – G
+  var BASS = [36, 33, 29, 31];
+  var LEAD = [72, 76, 79, 76, 74, 72, 74, 0, 76, 79, 81, 79, 77, 76, 74, 0,   69, 72, 76, 72, 74, 76, 72, 0, 69, 72, 74, 76, 77, 76, 74, 72,
+              65, 69, 72, 69, 70, 72, 74, 0, 72, 69, 65, 69, 72, 74, 77, 0,   74, 71, 67, 71, 74, 76, 79, 0, 83, 81, 79, 77, 76, 74, 71, 74];
+  var hz = function (m) { return 440 * Math.pow(2, (m - 69) / 12); };
+  function note(f, t, d, type, v) { var o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(out); o.start(t); o.stop(t + d + .02); }
+  function hat(t, v) { var n = Math.floor(ac.sampleRate * .03), b = ac.createBuffer(1, n, ac.sampleRate), x = b.getChannelData(0); for (var i = 0; i < n; i++) x[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = b; f.type = 'highpass'; f.frequency.value = 7000; g.gain.value = v; src.connect(f); f.connect(g); g.connect(out); src.start(t); }
+  function kick(t) { var o = ac.createOscillator(), g = ac.createGain(); o.type = 'square'; o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(40, t + .09);
+    g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.0001, t + .14); o.connect(g); g.connect(out); o.start(t); o.stop(t + .16); }
+  function play(i, t) { var bar = Math.floor(i / 16) % 4, s16 = i % 16, li = i % 64;
+    if (s16 % 4 === 0) kick(t); if (s16 % 2 === 1) hat(t, .12); if (s16 === 4 || s16 === 12) hat(t, .3);
+    note(hz(BASS[bar] + (s16 % 4 === 2 ? 12 : 0)), t, S * .9, 'triangle', .28);
+    note(hz(CH[bar][s16 % 3] + 12), t, S * .8, 'square', .03);   // арпеџо
+    if (LEAD[li]) note(hz(LEAD[li]), t, S * 1.6, 'square', .05); }
+  function tick() { if (!ac) return; while (next < ac.currentTime + .12) { play(step, next); next += S; step++; } }
+  function start() { if (on || !audio()) return; on = true; out = ac.createGain(); out.gain.value = 0; out.connect(ac.destination);
+    out.gain.linearRampToValueAtTime(.14, ac.currentTime + .5); next = ac.currentTime + .05; step = 0; timer = setInterval(tick, 25); }
+  function stop() { if (!on) return; on = false; clearInterval(timer); var o = out; o.gain.setTargetAtTime(0, ac.currentTime, .1); setTimeout(function () { try { o.disconnect(); } catch (e) {} }, 600); }
+  setInterval(function () { var want = $('games') && $('games').classList.contains('open') && document.visibilityState === 'visible' && music.enabled() && ac && ac.state === 'running';
+    if (want) start(); else stop(); }, 250);
+  return { stop: stop };
+})();
 // ---------- Снимени гласови (zvuci/) ----------
 var CLIPS = { omg: 'zvuci/omg.m4a', omg2: 'zvuci/omg2.m4a' }, clipBuf = {}, clipsLoading = false;
 function loadClips() {
@@ -1808,7 +1836,7 @@ var lastTouch = 0;
 document.addEventListener('touchend', function (e) { var n = Date.now(), t = e.target; if (n - lastTouch < 320 && !(t && /INPUT|TEXTAREA/.test(t.tagName))) { e.preventDefault(); if (t && t.click) t.click(); } lastTouch = n; }, { passive: false });
 if (unlocked()) $('lock').classList.remove('open');
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-19-33';
+var APP_VER = '2026-11-20-1';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1933,7 +1961,8 @@ var G = {
       gRaf = requestAnimationFrame(loop); })(last);
   }
 };
-$('gamesBtn').addEventListener('click', function () { audio(); $('games').classList.add('open'); gHome(); });
+$('gamesBtn').addEventListener('click', function () { audio(); $('games').classList.add('open'); $('gMus').textContent = music.enabled() ? '🔊' : '🔇'; gHome(); });
+$('gMus').addEventListener('click', function (e) { e.stopPropagation(); music.toggle(); $('gMus').textContent = music.enabled() ? '🔊' : '🔇'; });
 $('gBack').addEventListener('click', function () { gStop(); $('games').classList.remove('open'); home(); });
 
 // ---------- Пораки до одреден корисник (по код за влез) ----------
