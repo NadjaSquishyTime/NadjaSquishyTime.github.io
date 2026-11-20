@@ -1397,6 +1397,17 @@ function buzzStop() { if (!buzzLoop) return; var b = buzzLoop; buzzLoop = null; 
 function schoolBell(delay) {   // училишно ѕвонче: брзи метални удари
   for (var k = 0; k < 14; k++) { tone(1568, 1560, .14, 'triangle', .1, (delay || 0) + k * .055); tone(2349, 2340, .1, 'sine', .05, (delay || 0) + k * .055); click(5200, .12, (delay || 0) + k * .055); }
 }
+var BOOKS = ['📚', '📖', '📕', '📗', '📘', '📙', '✏️'];
+function spawnBook(n) { cur._books = cur._books || []; for (var i = 0; i < n; i++) { var a = Math.random() * 6.283, sp = 140 + Math.random() * 260;
+  cur._books.push({ x: CX + Math.cos(a) * 60, y: CY - 20 + Math.sin(a) * 40, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, r: Math.random() * 6.28, vr: (Math.random() - .5) * 9, s: 20 + Math.random() * 16, e: BOOKS[Math.floor(Math.random() * BOOKS.length)], life: 1.6 + Math.random() * .8 }); } }
+function schoolBooks(g, dt) {
+  var q = hand.q * hand.h; if (hand.down && Math.random() < dt * (2 + q * 18)) spawnBook(1 + (q > .6 ? 1 : 0));
+  var B = cur._books || []; g.textAlign = 'center'; g.textBaseline = 'middle';
+  B.forEach(function (b) { b.vy += 420 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt; b.life -= dt;
+    if (b.x < 14 || b.x > W - 14) { b.vx *= -.7; b.x = clamp(b.x, 14, W - 14); }
+    g.save(); g.globalAlpha = clamp(b.life, 0, 1); g.translate(b.x, b.y); g.rotate(b.r); g.font = b.s + 'px system-ui'; g.fillText(b.e, 0, 0); g.restore(); });
+  cur._books = B.filter(function (b) { return b.life > 0 && b.y < H + 40; }); g.globalAlpha = 1;
+}
 function tennisHit() {   // удар со рекет по тениско топче: „поп!“ + одбивање од теренот
   var c = audio(); if (!c) return;
   burst(.06, 'bandpass', 1400, .9); click(2600, .55); tone(260, 120, .09, 'triangle', .35);   // удар во жиците
@@ -1540,6 +1551,7 @@ function frame(now) {
   g2.clearRect(0, 0, W, H);
   if (hand.h > .02) drawFinger(g2, fl[2]);
   draw(g2, P, cur, now / 1000);
+  if (cur.sfx === 'school') schoolBooks(g2, dt);   // книги што летаат наоколу
   if (cur.sfx === 'buzz') { buzzStart(); buzzLevel(.05 + .025 * Math.sin(now / 1000 * 1.7) + hand.q * .09); }   // муви зујат постојано, погласно при стискање
   if (cur.popit && cur._bp && hand.down && hand.q > .3) {   // меурчињата под прстите пукаат
     fingerList().forEach(function (F) { cur._bp.forEach(function (b, k) { if (!cur._pop[k] && Math.hypot(b.x - F.x, b.y - F.y) < F.r + b.r * .8) { cur._pop[k] = 1; popSound(); } }); });
@@ -1569,7 +1581,7 @@ function up() {
   if (hand.peak > .45 && cur.sfx === 'sped') { var pent = [1047, 1175, 1319, 1568, 1760, 2093]; [0, 1, 2].forEach(function (k) { var f = any(pent); tone(f, f, .35, 'triangle', .09, k * .08); tone(f * 2, f * 2, .2, 'sine', .03, k * .08); }); fizz(.05, .07); fizz(.15, .06); }
   if (hand.peak > .45 && cur.sfx === 'king') [523, 659, 784].forEach(function (f, k) { tone(f, f, .22, 'sawtooth', .04, k * .1); tone(f, f, .25, 'triangle', .1, k * .1); });
   if (hand.peak > .45 && cur.sfx === 'racket') tennisHit();
-  if (hand.peak > .45 && cur.sfx === 'school' && Math.random() < .3) schoolBell(.15);
+  if (hand.peak > .45 && cur.sfx === 'school') { spawnBook(14); for (var bk = 0; bk < 5; bk++) click(900 + Math.random() * 700, .25, bk * .04); if (Math.random() < .3) schoolBell(.15); }   // експлозија од книги
   if (hand.peak > .45 && cur.sfx === 'buzz') { flyBuzz(1.4, .12); setTimeout(function () { flyBuzz(1, .08); }, 350); }
   if (hand.peak > .45 && cur.mat === 'crunch' && !cur.bar) { for (var cb = 0; cb < 9; cb++) click(1600 + Math.random() * 3800, .3 + Math.random() * .2, cb * .025 + Math.random() * .02);
     burst(.18, 'highpass', 2400, .35); if (cur.crust) cur._ck = Math.min(1, (cur._ck || 0) + .35); if (navigator.vibrate) navigator.vibrate([12, 20, 12]); }
@@ -1584,6 +1596,7 @@ function up() {
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 function play(v) {
+  v._books = [];
   if (v.sfx !== 'buzz') buzzStop();
   $('play').classList.toggle('card', !!v.card);
   if (v.card) {   // Special Edition: само фотографија, без стискање
@@ -1859,7 +1872,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-8';
+var APP_VER = '2026-11-20-9';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
