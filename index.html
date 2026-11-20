@@ -246,7 +246,7 @@
   <div class="scroll">
     <button class="boxbtn" id="boxBtn"><div class="ico">?</div><div><b>Отвори Mystery Box</b><small id="boxN"></small></div></button>
     <button class="boxbtn sp" id="spBtn"><div class="ico">🧺</div><div><b>Special Box ✨</b><small id="spN"></small></div></button>
-    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>6 игри + 6 логички задачи · победи и добиј +2 Mystery и +2 Special Box</small></div></button>
+    <button class="boxbtn gm" id="gamesBtn"><div class="ico">🎮</div><div><b>Игри</b><small>6 игри + 6 логички задачи · победи и добиј +1 Mystery и +1 Special Box</small></div></button>
     <button class="boxbtn adv" id="advBtn"><div class="ico">12</div><div><b>Advent Calendar</b><small id="advN"></small></div></button>
     <button class="boxbtn tr" id="trBtn"><div class="ico">⇄</div><div><b>Размена</b><small>Испрати или прими кнедла од пријател</small></div></button>
     <div class="prog"><span id="progT"></span><button id="oddsBtn">Шанси</button></div>
@@ -1920,7 +1920,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-15';
+var APP_VER = '2026-11-20-16';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -1936,7 +1936,7 @@ function checkVersion() {   // ако на серверот има понова 
 checkVersion();
 
 // ---------- 🎮 Игри за еден играч ----------
-// Секоја игра има цел; кога ќе се стигне: +2 Mystery Box и +2 Special Box (еднаш дневно по игра).
+// Секоја игра има цел; кога ќе се стигне: +1 Mystery Box и +1 Special Box (еднаш дневно по игра).
 var GAMES = [
   { id: 'catch', n: '🧺 Фати ги кнедлите', d: 'Фати 30 squishies, пази на 💩 (3 животи)' },
   { id: 'memory', n: '🃏 Меморија', d: 'Најди ги 10-те парови (20 полиња) во најмногу 23 обиди' },
@@ -1952,7 +1952,7 @@ function gWonToday(id) { SV.gameWins = SV.gameWins || {}; return SV.gameWins[id]
 function gBest(id, val, lower) { SV.gameBest = SV.gameBest || {}; var b = SV.gameBest[id]; if (b === undefined || (lower ? val < b : val > b)) { SV.gameBest[id] = val; save(); return true; } return false; }
 function gEnd(id, won, txt, score, lower) {
   gStop(); var rec = score !== undefined && gBest(id, score, lower), msg = txt + (rec ? '<br>🏆 Нов рекорд!' : '');
-  if (won && !gWonToday(id)) { SV.gameWins[id] = gToday(); SV.boxes += 2; SV.sboxes = (SV.sboxes || 0) + 2; save(); msg += '<br><b>Награда: +2 Mystery Box и +2 Special Box! 🎁</b>'; party('You win! Two boxes!'); }
+  if (won && !gWonToday(id)) { SV.gameWins[id] = gToday(); SV.boxes += 1; SV.sboxes = (SV.sboxes || 0) + 1; save(); msg += '<br><b>Награда: +1 Mystery Box и +1 Special Box! 🎁</b>'; party('You win! A box for you!'); }
   else if (won) { msg += '<br><small>Наградата за оваа игра ја доби денес. Пробај пак утре!</small>'; [523, 659, 784].forEach(function (f, k) { tone(f, f, .2, 'triangle', .12, k * .1); }); }
   else tone(300, 160, .35, 'sawtooth', .07);
   $('gArea').innerHTML = '<div class="gres">' + (won ? '🎉 Браво!' : '😅 Не успеа') + '<p>' + msg + '</p><button class="gbtn" id="gAgain">Пак</button> <button class="gbtn alt" id="gMenu">Други игри</button></div>';
@@ -1961,7 +1961,7 @@ function gEnd(id, won, txt, score, lower) {
 function gHome() {
   gStop(); $('gTitle').textContent = '🎮 Игри';
   var card = function (g) { var b = (SV.gameBest || {})[g.id]; return '<button class="gcard' + (g.logic ? ' lg' : '') + '" data-g="' + g.id + '"><b>' + g.n + (gWonToday(g.id) ? ' ✅' : '') + '</b><small>' + g.d + (b !== undefined ? ' · рекорд: ' + b : '') + '</small></button>'; };
-  $('gArea').innerHTML = '<p class="sub" style="margin:0 0 10px">Стигни ја целта → +2 Mystery Box и +2 Special Box (еднаш дневно по игра)</p>' + GAMES.filter(function (g) { return !g.logic; }).map(card).join('')
+  $('gArea').innerHTML = '<p class="sub" style="margin:0 0 10px">Стигни ја целта → +1 Mystery Box и +1 Special Box (еднаш дневно по игра)</p>' + GAMES.filter(function (g) { return !g.logic; }).map(card).join('')
     + '<div class="sphead" style="margin:14px 2px 8px">🧩 Логика</div>' + GAMES.filter(function (g) { return g.logic; }).map(card).join('');
   Array.prototype.forEach.call(document.querySelectorAll('.gcard'), function (b) { b.onclick = function () { gPlay(b.getAttribute('data-g')); }; });
 }
