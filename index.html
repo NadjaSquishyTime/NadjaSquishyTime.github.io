@@ -235,6 +235,9 @@
   .lgdiff { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .lgd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 6px; border-radius: 12px; background: #2a2346; }
   .lgd span, .lgd button { aspect-ratio: 1; display: grid; place-items: center; font-size: 20px; border: 0; border-radius: 8px; background: #1a1430; padding: 0; } .lgd button.ok { background: #1fae5a; } .lgd button.bad { background: #c81e3a; }
   .lgsudo { display: grid; grid-template-columns: repeat(4, 64px); justify-content: center; gap: 4px; margin: 10px 0; } .lgsudo button { width: 64px; height: 64px; border: 0; border-radius: 12px; background: #2a2346; font-size: 32px; } .lgsudo button.fx { background: #3c3366; }
+  .friends { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+  .friends button { padding: 9px 14px; border: 0; border-radius: 999px; background: #2a2346; color: #fff; font-weight: 700; font-size: 15px; } .friends button.on { background: linear-gradient(120deg, #0f9d74, #2ee6a6); color: #06251a; }
+  .sharebtn { display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 16px; font-weight: 900; font-size: 18px; background: linear-gradient(120deg, #25d366, #2ee6a6); color: #06251a; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -293,21 +296,22 @@
 
   <div class="screen" id="trade" style="--rc:#2ee6a6">
     <div class="top"><button class="back" id="trBack">← Назад</button><span class="tag" style="--rc:#2ee6a6">Размена</span></div>
-    <h2>Размена</h2><p class="sub">Твој ID: <b id="myId" style="color:#fff;letter-spacing:2px"></b> · дај му го на пријателот</p>
+    <h2>Размена</h2><p class="sub">Подари squishy на пријател со два допири 🎁 · твој ID: <b id="myId" style="color:#fff;letter-spacing:2px"></b></p>
     <div class="tbody">
       <div class="seg"><button id="segSend" class="on">Испрати</button><button id="segGet">Прими</button></div>
       <div class="tpane on" id="paneSend">
         <p class="step">1. Избери кнедла што ја даваш</p>
         <div class="pick" id="pick"></div>
-        <p class="step">2. Внеси го ID-то на пријателот</p>
-        <input id="toId" class="codein wide" placeholder="ID (6 знаци)" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        <button class="enter wide" id="mkCode">Создај код за размена</button>
+        <p class="step">2. Кому го праќаш?</p>
+        <div class="friends" id="friends"></div>
+        <input id="toId" class="codein wide" placeholder="ID на пријателот (6 знаци)" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" style="display:none">
+        <button class="enter wide" id="mkCode">🎁 Подари</button>
         <p class="msg" id="sendMsg"></p>
         <div id="codeOut"></div>
         <div class="sent" id="sentList"></div>
       </div>
       <div class="tpane" id="paneGet">
-        <p class="step">Залепи го кодот што ти го пратил пријателот</p>
+        <p class="step">Ако пријателот ти пратил <b>линк</b>, само отвори го и squishy-то ќе ти дојде само. Ако ти пратил код, залепи го тука:</p>
         <input id="inCode" class="codein wide" placeholder="КОД-ЗА-РАЗМЕНА" autocomplete="off" autocapitalize="characters" spellcheck="false">
         <button class="enter wide" id="useCode">Прими кнедла</button>
         <p class="msg" id="getMsg"></p>
@@ -1761,8 +1765,18 @@ function redeem(raw) {
 function copyText(t, btn) { var done = function () { btn.textContent = 'Копирано ✓'; };
   if (navigator.share) { navigator.share({ text: t }).catch(function () {}); return; }
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {}); }
+var toPickId = null;
+function friendList() {   // имиња од USERS (без мене и без тест-кодовите)
+  var me = myHash(), out = []; for (var h in USERS) if (h !== me && h !== TESTER) out.push({ n: USERS[h], id: h.slice(0, 6).toUpperCase() }); return out;
+}
+function drawFriends() {
+  var el = $('friends'); el.innerHTML = ''; friendList().forEach(function (f) { var b = document.createElement('button'); b.textContent = f.n; if (toPickId === f.id) b.className = 'on';
+    b.onclick = function () { toPickId = f.id; $('toId').style.display = 'none'; $('toId').value = ''; drawFriends(); }; el.appendChild(b); });
+  var o = document.createElement('button'); o.textContent = '+ Друг (ID)'; if (toPickId === 'other') o.className = 'on';
+  o.onclick = function () { toPickId = 'other'; $('toId').style.display = 'block'; $('toId').focus(); drawFriends(); }; el.appendChild(o);
+}
 function tradeScreen() {
-  $('myId').textContent = myID(); var pk = $('pick'); pk.innerHTML = '';
+  drawFriends(); $('myId').textContent = myID(); var pk = $('pick'); pk.innerHTML = '';
   var own = allVariants().filter(function (v) { return SV.owned[v.id] && !v.only; });   // King-овите не се разменуваат
   if (!own.length) pk.innerHTML = '<p class="step">Немаш кнедли за давање. Отвори кошничка прво.</p>';
   own.forEach(function (v) { var b = document.createElement('button'); b.className = v.id === pickId ? 'sel' : '';
@@ -1776,16 +1790,19 @@ $('trBack').addEventListener('click', function () { $('trade').classList.remove(
 $('segSend').addEventListener('click', function () { $('segSend').className = 'on'; $('segGet').className = ''; $('paneSend').className = 'tpane on'; $('paneGet').className = 'tpane'; });
 $('segGet').addEventListener('click', function () { $('segGet').className = 'on'; $('segSend').className = ''; $('paneGet').className = 'tpane on'; $('paneSend').className = 'tpane'; });
 $('mkCode').addEventListener('click', function () {
-  var m = $('sendMsg'), to = $('toId').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), v = pickId && byId(pickId); m.className = 'msg';
+  var m = $('sendMsg'), to = toPickId && toPickId !== 'other' ? toPickId : $('toId').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), v = pickId && byId(pickId); m.className = 'msg';
   if (!v || !SV.owned[v.id]) { m.textContent = 'Прво избери кнедла.'; return; }
+  if (!to) { m.textContent = 'Избери кому го праќаш.'; return; }
   if (!/^[0-9A-F]{6}$/.test(to)) { m.textContent = 'ID-то има 6 знаци (бројки и букви A до F).'; return; }
   if (to === myID()) { m.textContent = 'Ова е твоето ID. Внеси го ID-то на пријателот.'; return; }
   var code = makeTrade(v, to); takeItem(v); SV.sent = SV.sent || []; SV.sent.unshift({ c: code, n: v.name }); SV.sent = SV.sent.slice(0, 20); save();
   audio(); [659, 880].forEach(function (f, k) { tone(f, f, .18, 'triangle', .15, k * .09); });
   m.className = 'msg ok'; m.textContent = v.name + ' е извадена од твојата колекција.';
-  $('codeOut').innerHTML = '<div class="codebox"><code>' + code + '</code><button id="cpy">Копирај / сподели</button><small>Прати му го кодот на пријателот со ID ' + to + '. Важи само за него.</small></div>';
-  $('cpy').addEventListener('click', function () { copyText(code, $('cpy')); });
-  pickId = null; $('toId').value = ''; tradeScreen();
+  var fname = (friendList().filter(function (f) { return f.id === to; })[0] || {}).n || ('ID ' + to), link = location.origin + location.pathname + '#gift=' + code;
+  $('codeOut').innerHTML = '<div class="codebox"><b>🎁 ' + v.name + ' за ' + fname + '</b><button class="sharebtn" id="shr">📤 Испрати линк</button><small>Пријателот само го отвора линкот и squishy-то му доаѓа само. (Код, ако треба: <code>' + code + '</code>)</small></div>';
+  $('shr').addEventListener('click', function () { var t = 'Ти подарив ' + v.name + ' 🎁 Отвори го линкот:';
+    if (navigator.share) navigator.share({ text: t, url: link }).catch(function () {}); else copyText(t + ' ' + link, $('shr')); });
+  pickId = null; toPickId = null; $('toId').value = ''; tradeScreen();
 });
 $('useCode').addEventListener('click', function () {
   var m = $('getMsg'), r = redeem($('inCode').value); m.className = 'msg'; $('gotOut').innerHTML = '';
@@ -1920,7 +1937,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-20-16';
+var APP_VER = '2026-11-23-1';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2259,6 +2276,14 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 // STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
+// Подарок преку линк: …github.io/#gift=КОД → squishy-то се прима само
+var pendingGift = (location.hash.match(/^#gift=([A-Za-z0-9-]+)/) || [])[1] || null;
+if (pendingGift) try { history.replaceState(null, '', location.pathname); } catch (e) {}
+function takeGift() {
+  if (!pendingGift || !myHash() || $('lock').classList.contains('open') || splashOn()) return; var code = pendingGift; pendingGift = null;
+  $('trade').classList.add('open'); tradeScreen(); $('segGet').click(); $('inCode').value = code; $('useCode').click();
+}
+setInterval(takeGift, 500);
 // Проверка: отвори ја апликацијата со #stats на крајот од линкот (…github.io/#stats) за да видиш дали праќањето работи.
 if (location.hash === '#stats') setTimeout(function () {
   var me = myHash(), lines = ['Верзија: ' + APP_VER, 'Твој ID: ' + (me ? me.slice(0, 6).toUpperCase() : 'НЕМА (не е внесен код)'), 'Праќање: ' + (STATS_URL ? 'вклучено' : 'ИСКЛУЧЕНО')];
