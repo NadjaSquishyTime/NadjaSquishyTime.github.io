@@ -1940,7 +1940,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-23-2';
+var APP_VER = '2026-11-23-3';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2282,8 +2282,8 @@ setTimeout(sendStats, 15000);   // прво праќање кратко по о�
 // ---------- Директни подароци преку Google табелата („поштенско сандаче“) ----------
 // Подарокот е потпишан код; апликацијата на примачот го проверува (за кого е, дали е валиден, дали е веќе искористен).
 function sendGift(to, code, item) {
-  if (!STATS_URL) return; var data = JSON.stringify({ type: 'gift', to: to, code: code, item: item, from: myName() || myID() });
-  try { fetch(STATS_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: data }).catch(function () {}); } catch (e) {}
+  if (!STATS_URL) return; var q = '?send=1&to=' + encodeURIComponent(to) + '&code=' + encodeURIComponent(code) + '&item=' + encodeURIComponent(item) + '&from=' + encodeURIComponent(myName() || myID());
+  try { fetch(STATS_URL + q, { mode: 'no-cors', keepalive: true }).catch(function () {}); } catch (e) {}   // подарокот оди преку doGet (нов фајл во скриптата)
 }
 var giftQ = [], inboxBusy = false, inboxT = 0, giftsOK = false;   // giftsOK: Google скриптата има сандаче
 function checkInbox() {
