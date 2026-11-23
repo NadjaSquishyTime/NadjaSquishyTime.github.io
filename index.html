@@ -238,6 +238,7 @@
   .friends { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
   .friends button { padding: 9px 14px; border: 0; border-radius: 999px; background: #2a2346; color: #fff; font-weight: 700; font-size: 15px; } .friends button.on { background: linear-gradient(120deg, #0f9d74, #2ee6a6); color: #06251a; }
   .sharebtn { display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 16px; font-weight: 900; font-size: 18px; background: linear-gradient(120deg, #25d366, #2ee6a6); color: #06251a; }
+  .sharebtn.alt { background: #2a2346; color: #fff; font-size: 15px; padding: 10px; }
   .umsg.greet { background: linear-gradient(135deg, #ffd166, #ff5d9e 55%, #7a3cff); font-size: 24px; }
   @media (prefers-reduced-motion: reduce) { .spark, .flash, .fxflake, .fxbulb { display: none; } }
 </style>
@@ -1799,7 +1800,9 @@ $('mkCode').addEventListener('click', function () {
   audio(); [659, 880].forEach(function (f, k) { tone(f, f, .18, 'triangle', .15, k * .09); });
   m.className = 'msg ok'; m.textContent = v.name + ' е извадена од твојата колекција.';
   var fname = (friendList().filter(function (f) { return f.id === to; })[0] || {}).n || ('ID ' + to), link = location.origin + location.pathname + '#gift=' + code;
-  $('codeOut').innerHTML = '<div class="codebox"><b>🎁 ' + v.name + ' за ' + fname + '</b><button class="sharebtn" id="shr">📤 Испрати линк</button><small>Пријателот само го отвора линкот и squishy-то му доаѓа само. (Код, ако треба: <code>' + code + '</code>)</small></div>';
+  if (giftsOK) { sendGift(to, code, v.name);   // директно во „поштенското сандаче“
+    $('codeOut').innerHTML = '<div class="codebox"><b>🎁 ' + v.name + ' е испратено до ' + fname + '!</b><small>Ќе го добие само штом ја отвори апликацијата.<br>Ако не стигне за неколку минути, испрати линк:</small><button class="sharebtn alt" id="shr">📤 Испрати линк</button><small>(код: <code>' + code + '</code>)</small></div>'; }
+  else $('codeOut').innerHTML = '<div class="codebox"><b>🎁 ' + v.name + ' за ' + fname + '</b><button class="sharebtn" id="shr">📤 Испрати линк</button><small>Пријателот само го отвора линкот и squishy-то му доаѓа само. (Код, ако треба: <code>' + code + '</code>)</small></div>';
   $('shr').addEventListener('click', function () { var t = 'Ти подарив ' + v.name + ' 🎁 Отвори го линкот:';
     if (navigator.share) navigator.share({ text: t, url: link }).catch(function () {}); else copyText(t + ' ' + link, $('shr')); });
   pickId = null; toPickId = null; $('toId').value = ''; tradeScreen();
@@ -1937,7 +1940,7 @@ if (unlocked()) { $('lock').classList.remove('open');
   var sp = $('splash'); sp.classList.add('on'); setTimeout(function () { sp.classList.add('out'); setTimeout(function () { sp.classList.remove('on', 'out'); }, 450); }, 2000); }
 function splashOn() { return $('splash').classList.contains('on'); }
 // Верзија на апликацијата. При секое објавување смени ја (и CACHE во sw.js), за отворените апликации сами да се освежат.
-var APP_VER = '2026-11-23-1';
+var APP_VER = '2026-11-23-2';
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
 var verChecked = 0;
 function checkVersion() {   // ако на серверот има понова верзија, страницата се вчитува одново
@@ -2276,6 +2279,28 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 // STATS_URL е адресата на Google Apps Script (види STATISTIKA.md). Ако е празна, ништо не се праќа.
 var STATS_URL = 'https://script.google.com/macros/s/AKfycbzg60s1FJbO2T7St3_z-a2KkcR7MKC7WgStHzNnAf26T9sz1U_UhQ_BFKWVq9WscW0bMw/exec';
 setTimeout(sendStats, 15000);   // прво праќање кратко по отворањето
+// ---------- Директни подароци преку Google табелата („поштенско сандаче“) ----------
+// Подарокот е потпишан код; апликацијата на примачот го проверува (за кого е, дали е валиден, дали е веќе искористен).
+function sendGift(to, code, item) {
+  if (!STATS_URL) return; var data = JSON.stringify({ type: 'gift', to: to, code: code, item: item, from: myName() || myID() });
+  try { fetch(STATS_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: data }).catch(function () {}); } catch (e) {}
+}
+var giftQ = [], inboxBusy = false, inboxT = 0, giftsOK = false;   // giftsOK: Google скриптата има сандаче
+function checkInbox() {
+  if (!STATS_URL || inboxBusy || !myHash() || isTester() || $('lock').classList.contains('open') || Date.now() - inboxT < 15000) return; inboxBusy = true; inboxT = Date.now();
+  fetch(STATS_URL + '?inbox=' + myID() + '&t=' + Date.now()).then(function (r) { return r.json(); }).then(function (list) { if (Array.isArray(list)) giftsOK = true;
+    (list || []).forEach(function (g) { var r = redeem(g.code); if (!r.err) giftQ.push({ from: g.from || 'Пријател', v: r.v }); }); if (giftQ.length && !document.querySelector('.screen.open')) home();
+  }).catch(function () {}).then(function () { inboxBusy = false; });
+}
+function showGifts() {   // порака за секој пристигнат подарок
+  if (!giftQ.length || msgBusy || splashOn() || $('umsg').classList.contains('on') || $('pause').classList.contains('open')) return;
+  var g = giftQ.shift(), el = $('umsg'); msgBusy = true; $('umsgT').innerHTML = '🎁 ' + g.from + ' ти подари<br><b>' + g.v.name + '</b>!<br><img src="' + thumb(g.v) + '" style="width:120px;margin-top:6px">';
+  el.classList.add('on', 'greet'); party('You got a gift!'); if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  setTimeout(function () { el.classList.remove('on'); setTimeout(function () { el.classList.remove('greet'); msgBusy = false; }, 400); }, 4500);
+}
+setInterval(checkInbox, 5000); setInterval(showGifts, 1000); setTimeout(checkInbox, 1200);
+$('trBtn').addEventListener('click', function () { if (!giftsOK) { inboxT = 0; checkInbox(); } });
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { inboxT = 0; checkInbox(); } });
 // Подарок преку линк: …github.io/#gift=КОД → squishy-то се прима само
 var pendingGift = (location.hash.match(/^#gift=([A-Za-z0-9-]+)/) || [])[1] || null;
 if (pendingGift) try { history.replaceState(null, '', location.pathname); } catch (e) {}

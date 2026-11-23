@@ -1,4 +1,6 @@
-# Статистика за користење (Google Sheets)
+# Статистика за користење и директни подароци (Google Sheets)
+
+Скриптата прави две работи: ја собира статистиката (прв лист) и служи како „поштенско сандаче“ за подароци (лист „Подароци“): кога некој подарува squishy, подарокот се запишува тука, а апликацијата на примачот сама го зема.
 
 Апликацијата нема свој сервер, па статистиката се собира во **твоја Google табела**.
 Секој корисник на секои 5 минути (и кога ќе ја затвори апликацијата) праќа:
@@ -30,17 +32,41 @@
    Тој го става во `STATS_URL` во `index.html` и статистиката почнува да пристигнува.
 
 ```javascript
+// Линкот од твојата табела „Squishy статистика“ (Share ▾ → Copy link)
+var SHEET_URL = 'ЗАЛЕПИ_ЛИНК_ОД_ТАБЕЛАТА';
+
+function book() { return SpreadsheetApp.openByUrl(SHEET_URL); }
+function sheet() { return book().getSheets()[0]; }
+function giftSheet() {   // втор лист „Подароци“ (сандаче)
+  var b = book(), sh = b.getSheetByName('Подароци');
+  if (!sh) { sh = b.insertSheet('Подароци'); sh.appendRow(['За (ID)', 'Код', 'Од', 'Squishy', 'Испратено', 'Примено']); }
+  return sh;
+}
+function dayText(v) { return v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(v); }
+
 function doPost(e) {
   var d = JSON.parse(e.postData.contents);
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (d.type === 'gift') { giftSheet().appendRow(["'" + d.to, d.code, d.from, d.item, new Date(), '']); return ContentService.createTextOutput('ok'); }
+  var sh = sheet();
   if (sh.getLastRow() === 0) sh.appendRow(['ID', 'Датум', 'Денес (мин)', 'Вкупно (мин)', 'Стисоци', 'Squishies', 'Отворени кутии', 'Последно']);
-  var row = [String(d.id), String(d.day), Math.round(d.today / 6) / 10, Math.round(d.total / 6) / 10, d.squeezes, d.owned, d.opens, new Date()];
+  var row = ["'" + d.id, "'" + d.day, Math.round(d.today / 6) / 10, Math.round(d.total / 6) / 10, d.squeezes, d.owned, d.opens, new Date()];
   var vals = sh.getDataRange().getValues();
   for (var i = 1; i < vals.length; i++) {
-    if (String(vals[i][0]) === row[0] && String(vals[i][1]) === row[1]) { sh.getRange(i + 1, 1, 1, row.length).setValues([row]); return ContentService.createTextOutput('ok'); }
+    if (String(vals[i][0]) === String(d.id) && dayText(vals[i][1]) === String(d.day)) { sh.getRange(i + 1, 1, 1, row.length).setValues([row]); return ContentService.createTextOutput('ok'); }
   }
   sh.appendRow(row);
   return ContentService.createTextOutput('ok');
+}
+
+function doGet(e) {   // апликацијата прашува: „има ли подароци за мене?“
+  var id = e && e.parameter && e.parameter.inbox, out = [];
+  if (id) {
+    var sh = giftSheet(), vals = sh.getDataRange().getValues();
+    for (var i = 1; i < vals.length; i++) {
+      if (String(vals[i][0]) === String(id) && !vals[i][5]) { out.push({ code: vals[i][1], from: vals[i][2], item: vals[i][3] }); sh.getRange(i + 1, 6).setValue(new Date()); }
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 ```
 
