@@ -74,3 +74,26 @@ function doGet(e) {   // апликацијата прашува: „има ли
 
 ID-то е првите 6 знаци од отпечатокот на кодот. Секој корисник го гледа својот ID во **Размена** („Твој ID“).
 Claude може да пресмета ID за код што го знаеш.
+
+
+## Подароци (сандаче) — посебен фајл, без менување на кодот погоре
+
+Во Apps Script: **Files ＋ → Script**, име `gifts`, залепи го кодот, **Save**, па **Deploy → Manage deployments → ✏️ → New version → Deploy**.
+Апликацијата праќа подарок со `?send=1…`, а го зема со `?inbox=ID`. Подароците се гледаат во листот „Подароци“.
+
+```javascript
+// Подароци: сандаче (го користи SHEET_URL од Code.gs)
+function doGet(e) {
+  var p = (e && e.parameter) || {}, b = SpreadsheetApp.openByUrl(SHEET_URL), sh = b.getSheetByName('Подароци');
+  if (!sh) { sh = b.insertSheet('Подароци'); sh.appendRow(['За (ID)', 'Код', 'Од', 'Squishy', 'Испратено', 'Примено']); }
+  if (p.send) { sh.appendRow(["'" + p.to, p.code, p.from, p.item, new Date(), '']); return ContentService.createTextOutput('ok'); }
+  var out = [];
+  if (p.inbox) {
+    var vals = sh.getDataRange().getValues();
+    for (var i = 1; i < vals.length; i++) {
+      if (String(vals[i][0]) === String(p.inbox) && !vals[i][5]) { out.push({ code: vals[i][1], from: vals[i][2], item: vals[i][3] }); sh.getRange(i + 1, 6).setValue(new Date()); }
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+```
